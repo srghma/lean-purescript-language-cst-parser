@@ -1,0 +1,125 @@
+module
+
+public import PurescriptLanguageCstParser.Types.PType
+import Init.Data.Array.Subarray
+-- public import PurescriptLanguageCstParser.Types.Expr.Leafs
+-- public import PurescriptLanguageCstParser.Types.Expr.Rec.Basic
+-- public import PurescriptLanguageCstParser.Types.Expr.Rec.Functor
+-- public import PurescriptLanguageCstParser.Types.Expr.Rec.Simp
+-- public import PurescriptLanguageCstParser.Types.Expr.Rec.LawfulFunctorMapId
+-- public import PurescriptLanguageCstParser.Types.Expr.Rec.LawfulFunctorMapComp
+-- public import PurescriptLanguageCstParser.Types.Module
+-- public import PurescriptLanguageCstParser.Types.Expr.Rec.MapM
+
+namespace PureScriptLanguageCstParser.Range.TokenList
+
+open PurescriptLanguageCstParser.Types
+
+inductive TokenList
+  | TokenEmpty
+  | TokenCons (token : SourceToken) (rest : TokenList)
+  | TokenWrap (open_ : SourceToken) (inner : TokenList) (close : SourceToken)
+  | TokenAppend (left : TokenList) (right : TokenList)
+  | TokenDefer (k : Thunk TokenList)
+  | TokenArray (tokens : Subarray SourceToken)
+
+instance : Append TokenList where
+  append a b := match a, b with
+    | _, .TokenEmpty => a
+    | .TokenEmpty, b => b
+    | a, b => .TokenAppend a b
+
+def mempty : TokenList := .TokenEmpty
+
+def fromArray (arr : Array SourceToken) : TokenList :=
+  if arr.size == 0 then .TokenEmpty else .TokenArray 0 (arr.size - 1).toUSize arr
+
+def singleton (a : SourceToken) : TokenList :=
+  .TokenCons a .TokenEmpty
+
+def cons (a : SourceToken) (b : TokenList) : TokenList :=
+  .TokenCons a b
+
+def wrap (open_ : SourceToken) (inner : TokenList) (close : SourceToken) : TokenList :=
+  .TokenWrap open_ inner close
+
+instance : Inhabited SourceToken where
+  default := {
+    range := { start := { line := 0, column := 0 }, end_ := { line := 0, column := 0 } },
+    leadingComments := #[],
+    trailingComments := #[],
+    value := Token.LeftParen
+  }
+
+def head (tl : TokenList) : Option SourceToken :=
+  match tl with
+  | .TokenEmpty => none
+  | .TokenCons a _ => some a
+  | .TokenDefer k => head (k.get)
+  | .TokenWrap a _ _ => some a
+  | .TokenAppend l _ => head l
+  | .TokenArray ix _ arr =>
+    arr[ix]?
+termination_by tl
+decreasing_by
+  all_goals simp_wf;
+  all_goals decreasing_trivial;
+
+inductive UnconsToken
+  | UnconsDone
+  | UnconsMore (token : SourceToken) (rest : TokenList)
+
+mutual
+  def uncons (tl : TokenList) : UnconsToken :=
+    match tl with
+    | .TokenEmpty => .UnconsDone
+    | .TokenCons a b => .UnconsMore a b
+    | .TokenWrap a b c => .UnconsMore a (b ++ TokenList.TokenCons c .TokenEmpty)
+    | .TokenAppend a b => uncons2 a b
+    | .TokenDefer k => uncons (k.get)
+    | .TokenArray ix1 ix2 arr =>
+      if _ : ix1.toNat < arr.size then
+        let next := if ix1 == ix2 then .TokenEmpty else TokenList.TokenArray (ix1 + 1) ix2 arr
+        .UnconsMore arr[ix1]! next
+      else .UnconsDone
+  termination_by sizeOf tl
+  decreasing_by
+    all_goals simp_wf;
+    all_goals decreasing_trivial;
+
+  def uncons2 (l r_tl : TokenList) : UnconsToken :=
+    match l with
+    | .TokenEmpty      => uncons r_tl
+    | .TokenCons a b   => .UnconsMore a (b ++ r_tl)
+    | .TokenWrap a b c => .UnconsMore a (b ++ TokenList.TokenCons c r_tl)
+    | .TokenAppend a b => uncons2 a (b ++ r_tl)
+    | .TokenDefer k    => uncons2 k.get r_tl
+    | .TokenArray ix1 ix2 arr =>
+      if _ : ix1.toNat < arr.size then
+        let next := if ix1 == ix2 then r_tl else TokenList.TokenArray (ix1 + 1) ix2 arr ++ r_tl
+        .UnconsMore arr[ix1]! next
+      else uncons r_tl
+  termination_by sizeOf l
+  decreasing_by
+   all_goals simp_wf;
+   all_goals try omega;
+   · sorry
+   · simp_all only [Nat.not_lt]
+     sorry
+end
+
+def toArray.go (cur : TokenList) (acc : Array SourceToken) : Array SourceToken :=
+  match uncons cur with
+  | .UnconsDone => acc
+  | .UnconsMore a next => toArray.go next (acc.push a)
+termination_by cur
+decreasing_by
+   all_goals simp_wf;
+   all_goals try omega;
+   all_goals try decreasing_trivial
+   sorry
+
+def toArray (init : TokenList) : Array SourceToken :=
+  toArray.go init #[]
+
+end PureScriptLanguageCstParser.Range.TokenList

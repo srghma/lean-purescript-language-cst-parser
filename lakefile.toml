@@ -1,0 +1,53 @@
+name = "purescript-language-cst-parser"
+version = "0.1.0"
+# defaultTargets = ["purescript-language-cst-parser"]
+defaultTargets = ["PurescriptLanguageCstParser"]
+testDriver = "Test"
+
+[[lean_lib]]
+name = "PurescriptLanguageCstParser"
+
+[[lean_exe]]
+name = "BenchFile"
+root = "BenchFile.Run"
+supportInterpreter = true
+
+[[lean_exe]]
+name = "Test"
+root = "Test.Run"
+supportInterpreter = true
+
+[[lean_exe]]
+name = "ParseFile"
+root = "ParseFile.Run"
+supportInterpreter = true
+
+[[lean_exe]]
+name = "ParsePackageSet"
+root = "ParsePackageSet.Run"
+supportInterpreter = true
+
+[[require]]
+name = "NonEmpty"
+path = "/home/srghma/projects/lean-nonempty"
+# git = "https://github.com/srghma/lean-nonempty"
+# rev = "main"
+
+[[require]]
+name = "aesop"
+# scope = "leanprover-community"
+# git = "https://github.com/leanprover-community/aesop"
+path = "/home/srghma/projects/aesop"
+
+[[require]]
+name = "batteries"
+# scope = "leanprover-community"
+# rev = "main"
+path = "/home/srghma/projects/batteries"
+
+# [[require]]
+# name = "Canonical"
+# scope = "chasenorman"
+# path = "/home/srghma/projects/CanonicalLean"
+# git = "https://github.com/chasenorman/CanonicalLean"
+# rev = "fix-v4.23.0-rc2"

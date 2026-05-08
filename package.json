@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "scripts": {
+    "lean:test": "lake exe Test",
+    "lean:parse-package-set": "lake exe ParsePackageSet",
+    "lean:bench-file": "lake exe BenchFile --",
+    "lean:parse-file": "lake exe ParseFile --"
+  }
+}
