@@ -33,17 +33,17 @@ path = "/home/srghma/projects/lean-nonempty"
 # git = "https://github.com/srghma/lean-nonempty"
 # rev = "main"
 
-[[require]]
-name = "aesop"
-# scope = "leanprover-community"
-# git = "https://github.com/leanprover-community/aesop"
-path = "/home/srghma/projects/aesop"
-
-[[require]]
-name = "batteries"
-# scope = "leanprover-community"
-# rev = "main"
-path = "/home/srghma/projects/batteries"
+# [[require]]
+# name = "aesop"
+# # scope = "leanprover-community"
+# # git = "https://github.com/leanprover-community/aesop"
+# path = "/home/srghma/projects/aesop"
+#
+# [[require]]
+# name = "batteries"
+# # scope = "leanprover-community"
+# # rev = "main"
+# path = "/home/srghma/projects/batteries"
 
 # [[require]]
 # name = "Canonical"
