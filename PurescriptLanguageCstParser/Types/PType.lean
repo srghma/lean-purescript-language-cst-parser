@@ -2,7 +2,6 @@ module
 
 public import NonEmpty.CorrectByConstruction.Array
 public import NonEmpty.String
-import Aesop
 import PurescriptLanguageCstParser.GenerateFixed
 
 namespace PurescriptLanguageCstParser.Types
@@ -13,12 +12,12 @@ open NonEmpty.String
 @[expose] public section
 
 def ModuleName := NonEmptyString
-  deriving Repr, BEq, Ord
+  deriving Repr, BEq, Ord, Hashable, DecidableEq
 
 structure SourcePos where
   line : USize
   column : USize
-  deriving Repr, BEq, Ord, Inhabited
+  deriving Repr, BEq, Ord, Inhabited, Hashable, DecidableEq
 
 namespace SourcePos
 
@@ -34,18 +33,18 @@ end SourcePos
 structure SourceRange where
   start : SourcePos
   end_ : SourcePos
-  deriving Repr, BEq, Ord, Inhabited
+  deriving Repr, BEq, Ord, Inhabited, Hashable, DecidableEq
 
 inductive CommentWithoutLine
   | Comment (s : NonEmptyString)
   | Space (i : USize)
-  deriving Repr, BEq, Ord
+  deriving Repr, BEq, Ord, Hashable, DecidableEq
 
 inductive Comment (l : Type)
   | Comment (s : NonEmptyString)
   | Space (i : USize)
   | Line (l : l) (i : USize)
-  deriving Repr, BEq, Ord
+  deriving Repr, BEq, Ord, Hashable, DecidableEq
 
 namespace Comment
 -- Why full name? Bc inductive type Comment has a constructor also named Comment
@@ -84,18 +83,18 @@ instance : LawfulFunctor Comment where
 inductive LineFeed
   | LF
   | CRLF
-  deriving Repr, BEq, Ord
+  deriving Repr, BEq, Ord, Hashable, DecidableEq
 
 inductive SourceStyle
   | ASCII
   | Unicode
-  deriving Repr, BEq, Ord
+  deriving Repr, BEq, Ord, Hashable, DecidableEq
 
 inductive IntValue
   | SmallInt (i : USize)
   | BigInt (s : NonEmptyString)
   | BigHex (s : NonEmptyString)
-  deriving Repr, BEq, Ord
+  deriving Repr, BEq, Ord, Hashable, DecidableEq
 
 inductive Token
   | LeftParen
@@ -162,16 +161,16 @@ instance : SizeOf SourceToken where
   sizeOf _ := 0
 
 def Ident := NonEmptyString
-  deriving Repr, BEq, Ord
+  deriving Repr, BEq, Ord, Hashable, DecidableEq
 
 def Proper := NonEmptyString
-  deriving Repr, BEq, Ord
+  deriving Repr, BEq, Ord, Hashable, DecidableEq
 
 def Label := NonEmptyString
-  deriving Repr, BEq, Ord
+  deriving Repr, BEq, Ord, Hashable, DecidableEq
 
 def Operator := NonEmptyString
-  deriving Repr, BEq, Ord
+  deriving Repr, BEq, Ord, Hashable, DecidableEq
 
 structure Name (α : Type) where
   token : SourceToken
