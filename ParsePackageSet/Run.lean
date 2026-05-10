@@ -83,7 +83,7 @@ def parseModuleFromFile (path : FilePath) : IO ModuleResult := do
 def displayDurationStats (results : Array TimingSample) (title : String) : String :=
   let sorted := results.qsort (fun a b => a.durationNanos < b.durationNanos)
   let count := results.size
-  let totalNanos := sorted.foldl (init := 0.0) fun acc result => acc + result.durationNanos.toFloat
+  let totalNanos := sorted.foldMap (· + ·) (fun result => result.durationNanos.toFloat) 0.0
   let totalMs := totalNanos / 1_000_000.0
   let meanMs := if count = 0 then 0.0 else totalMs / count.toFloat
   let minDuration := sorted.take 20

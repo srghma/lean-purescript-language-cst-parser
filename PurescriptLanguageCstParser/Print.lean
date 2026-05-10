@@ -1,6 +1,7 @@
 module
 
 public import PurescriptLanguageCstParser.Types.PType
+public import NonEmpty.ArrayUtil
 
 @[expose] public section
 
@@ -91,9 +92,9 @@ def printCommentWithoutLine : CommentWithoutLine → String
   | .Space n => "".pushn ' ' n.toNat
 
 def printSourceTokenWithOption (option : TokenOption) (tok : SourceToken) : String :=
-  let leading := tok.leadingComments.foldl (fun acc c => acc ++ printComment printLineFeed c) ""
+  let leading := NonEmpty.ArrayUtil.foldMap (· ++ ·) (printComment printLineFeed) "" tok.leadingComments
   let value := printTokenWithOption option tok.value
-  let trailing := tok.trailingComments.foldl (fun acc c => acc ++ printCommentWithoutLine c) ""
+  let trailing := NonEmpty.ArrayUtil.foldMap (· ++ ·) printCommentWithoutLine "" tok.trailingComments
   leading ++ value ++ trailing
 
 def printSourceToken : SourceToken → String := printSourceTokenWithOption .HideLayout

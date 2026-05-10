@@ -329,6 +329,10 @@ namespace Separated
 
 @[always_inline, simp] def map {α β : Type} (g : α → β) (s : Separated α) : Separated β := { head := g s.head, tail := s.tail.map (fun (tok, a) => (tok, g a)) }
 
+@[always_inline, simp, inline]
+def foldMap {α ω} (op : ω → ω → ω) (f : α → ω) (g : SourceToken × α → ω) (s : Separated α) : ω :=
+  NonEmpty.ArrayUtil.foldMap op g (f s.head) s.tail
+
 @[simp] theorem id_map {α : Type} (s : Separated α) : (s.map id) = s := by
   simp_all only [map, id_eq, Array.map_id_fun']
 

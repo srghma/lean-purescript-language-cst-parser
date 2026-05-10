@@ -21,10 +21,7 @@ instance : Append TokenList where
     | .TokenEmpty, b => b
     | a, b           => .TokenAppend a b
 
-def mempty                                                   : TokenList := .TokenEmpty
 def singleton (a : SourceToken)                              : TokenList := .TokenCons a .TokenEmpty
-def cons      (a : SourceToken) (b : TokenList)              : TokenList := .TokenCons a b
-def wrap      (o : SourceToken) (i : TokenList) (c : SourceToken) : TokenList := .TokenWrap o i c
 
 def fromArray (arr : Array SourceToken) : TokenList :=
   if _h : arr.size == 0 then .TokenEmpty
@@ -41,6 +38,9 @@ def TokenList.foldl (f : β → SourceToken → β) (init : β) : TokenList → 
   | .TokenWrap a i c => f (foldl f (f init a) i) c
   | .TokenAppend a b => foldl f (foldl f init a) b
   | .TokenArray arr _ => arr.foldl f init
+ 
+ def TokenList.foldMap (op : ω → ω → ω) (f : SourceToken → ω) (empty : ω) (tl : TokenList) : ω :=
+   tl.foldl (fun acc t => op acc (f t)) empty
 
 def toArray (tl : TokenList) : Array SourceToken :=
   tl.foldl (· |>.push ·) #[]

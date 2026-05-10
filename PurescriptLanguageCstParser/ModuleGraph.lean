@@ -44,9 +44,9 @@ partial def topoSort {a : Type} [BEq a] (g : Graph a) : Except (Array a) (Array 
     | curr :: roots' =>
         let deps := lookup remaining curr
         let remaining' := removeKey remaining curr
-        let roots'' := deps.foldl (fun acc dep => addRoot acc dep) roots'
+        let roots'' := deps.foldl addRoot roots'
         go remaining' roots'' (curr :: sorted)
-  let roots := g.foldl (fun acc p => if p.2.isEmpty then p.1 :: acc else acc) []
+  let roots := g.filterMap (fun (name, deps) => if deps.isEmpty then some name else none) |>.toList
   go g roots []
 
 def lookupKnown {a : Type} [BEq a] (known : Array (ModuleName × a)) (name : ModuleName) : Option a :=

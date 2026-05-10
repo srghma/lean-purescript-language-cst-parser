@@ -33,15 +33,15 @@ def computeStats (durations : Array Float) : BenchStats :=
     { mean := 0.0, stddev := 0.0, min := 0.0, max := 0.0 }
   else
     let count := durations.size.toFloat
-    let sum := durations.foldl (init := 0.0) fun acc d => acc + d
+    let sum := durations.foldMap (· + ·) id 0.0
     let mean := sum / count
     let variance :=
       durations.foldl (init := 0.0) fun acc d =>
         let delta := d - mean
         acc + delta * delta / count
     let first := durations[0]!
-    let min := durations.foldl (init := first) fun acc d => if d < acc then d else acc
-    let max := durations.foldl (init := first) fun acc d => if d > acc then d else acc
+    let min := durations.foldl Float.min first
+    let max := durations.foldl Float.max first
     { mean, stddev := Float.sqrt variance, min, max }
 
 def benchParseModule (contents : String) : IO BenchStats := do
