@@ -1,8 +1,8 @@
 module
 
-import PurescriptLanguageCstParser.Types.PType.Basic
-import Lean.Data.Json
-
+public import PurescriptLanguageCstParser.Types.PType.Basic
+public import Lean.Data.Json
+@[expose] public section
 namespace PurescriptLanguageCstParser.Types
 
 open Lean
