@@ -14,6 +14,9 @@ open NonEmpty.String
 def ModuleName := NonEmptyString
   deriving Repr, BEq, Ord, Hashable, DecidableEq
 
+instance : Inhabited ModuleName where
+  default := nes!"<DEFAULT ModuleName>"
+
 structure SourcePos where
   line : USize
   column : USize
