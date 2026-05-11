@@ -14,8 +14,7 @@ open NonEmpty.String
 def ModuleName := NonEmptyString
   deriving Repr, BEq, Ord, Hashable, DecidableEq
 
-instance : Inhabited ModuleName where
-  default := nes!"<DEFAULT ModuleName>"
+instance : Inhabited ModuleName := ⟨nes!"<DEFAULT ModuleName>"⟩
 
 structure SourcePos where
   line : USize
@@ -165,15 +164,19 @@ instance : SizeOf SourceToken where
 
 def Ident := NonEmptyString
   deriving Repr, BEq, Ord, Hashable, DecidableEq
+instance : Inhabited Ident := ⟨nes!"<DEFAULT Ident>"⟩
 
 def Proper := NonEmptyString
   deriving Repr, BEq, Ord, Hashable, DecidableEq
+instance : Inhabited Proper := ⟨nes!"<DEFAULT Proper>"⟩
 
 def Label := NonEmptyString
   deriving Repr, BEq, Ord, Hashable, DecidableEq
+instance : Inhabited Label := ⟨nes!"<DEFAULT Label>"⟩
 
 def Operator := NonEmptyString
   deriving Repr, BEq, Ord, Hashable, DecidableEq
+instance : Inhabited Operator := ⟨nes!"<DEFAULT Operator>"⟩
 
 structure Name (α : Type) where
   token : SourceToken
