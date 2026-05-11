@@ -1,8 +1,8 @@
 module
 public import PurescriptLanguageCstParser.Types
-import NonEmpty.CorrectByConstruction.Array
+import NonEmpty.ArrayCorrectByConstruction
 
-open NonEmpty.CorrectByConstruction.Array
+open NonEmpty.ArrayCorrectByConstruction
 open PurescriptLanguageCstParser.Types
 @[expose] public section
 

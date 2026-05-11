@@ -1,6 +1,6 @@
 module
 
-import NonEmpty.CorrectByConstruction.Array
+import NonEmpty.ArrayCorrectByConstruction
 import NonEmpty.String
 import Aesop
 public import PurescriptLanguageCstParser.Types.PType
@@ -18,7 +18,7 @@ meta import PurescriptLanguageCstParser.GenerateFixed
 
 namespace PurescriptLanguageCstParser.Types
 
-open NonEmpty.CorrectByConstruction.Array
+open NonEmpty.ArrayCorrectByConstruction
 open NonEmpty.String
 open PurescriptLanguageCstParser.Types
 

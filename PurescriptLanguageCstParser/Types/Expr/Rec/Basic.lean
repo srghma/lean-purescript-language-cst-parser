@@ -24,13 +24,12 @@ mutual
     deriving Repr, BEq
   structure WhereRecursive (e : Type) where
     expr : Expr e
-    bindings : Option (SourceToken × NonEmpty.CorrectByConstruction.Array.NonEmptyArray (LetBindingRecursive e))
+    bindings : Option (SourceToken × NonEmpty.ArrayCorrectByConstruction.NonEmptyArray (LetBindingRecursive e))
     deriving Repr, BEq
   inductive GuardedRecursive (e : Type) : Type where
     | Unconditional (token : SourceToken) (where_ : WhereRecursive e) : GuardedRecursive e
     |
-    Guarded (branches : NonEmpty.CorrectByConstruction.Array.NonEmptyArray (GuardedExprRecursive e)) :
-      GuardedRecursive e
+    Guarded (branches : NonEmpty.ArrayCorrectByConstruction.NonEmptyArray (GuardedExprRecursive e)) : GuardedRecursive e
     deriving Repr, BEq
   structure GuardedExprRecursive (e : Type) where
     bar : SourceToken
@@ -45,7 +44,7 @@ mutual
     deriving Repr, BEq
   inductive DoStatementRecursive (e : Type) : Type where
     |
-    Let (token : SourceToken) (bindings : NonEmpty.CorrectByConstruction.Array.NonEmptyArray (LetBindingRecursive e)) :
+    Let (token : SourceToken) (bindings : NonEmpty.ArrayCorrectByConstruction.NonEmptyArray (LetBindingRecursive e)) :
       DoStatementRecursive e
     | Discard (expr : Expr e) : DoStatementRecursive e
     | Bind (binder : Binder e) (token : SourceToken) (expr : Expr e) : DoStatementRecursive e
@@ -53,7 +52,7 @@ mutual
     deriving Repr, BEq
   structure DoBlockRecursive (e : Type) where
     keyword : SourceToken
-    statements : NonEmpty.CorrectByConstruction.Array.NonEmptyArray (DoStatementRecursive e)
+    statements : NonEmpty.ArrayCorrectByConstruction.NonEmptyArray (DoStatementRecursive e)
     deriving Repr, BEq
   structure AdoBlockRecursive (e : Type) where
     keyword : SourceToken
@@ -76,7 +75,7 @@ mutual
     deriving Repr, BEq
   structure LambdaRecursive (e : Type) where
     symbol : SourceToken
-    binders : NonEmpty.CorrectByConstruction.Array.NonEmptyArray (Binder e)
+    binders : NonEmpty.ArrayCorrectByConstruction.NonEmptyArray (Binder e)
     arrow : SourceToken
     body : Expr e
     deriving Repr, BEq
@@ -92,11 +91,11 @@ mutual
     keyword : SourceToken
     head : Separated (Expr e)
     of : SourceToken
-    branches : NonEmpty.CorrectByConstruction.Array.NonEmptyArray (Separated (Binder e) × GuardedRecursive e)
+    branches : NonEmpty.ArrayCorrectByConstruction.NonEmptyArray (Separated (Binder e) × GuardedRecursive e)
     deriving Repr, BEq
   structure LetInRecursive (e : Type) where
     keyword : SourceToken
-    bindings : NonEmpty.CorrectByConstruction.Array.NonEmptyArray (LetBindingRecursive e)
+    bindings : NonEmpty.ArrayCorrectByConstruction.NonEmptyArray (LetBindingRecursive e)
     in_ : SourceToken
     body : Expr e
     deriving Repr, BEq
@@ -115,16 +114,16 @@ mutual
     | Parens (wrapped : Wrapped (Expr e)) : Expr e
     | Typed (expr : Expr e) (token : SourceToken) (type_ : Type_ e) : Expr e
     |
-    Infix (head : Expr e) (tail : NonEmpty.CorrectByConstruction.Array.NonEmptyArray (Wrapped (Expr e) × Expr e)) :
+    Infix (head : Expr e) (tail : NonEmpty.ArrayCorrectByConstruction.NonEmptyArray (Wrapped (Expr e) × Expr e)) :
       Expr e
     |
-    Op (head : Expr e) (ops : NonEmpty.CorrectByConstruction.Array.NonEmptyArray (QualifiedName Operator × Expr e)) :
+    Op (head : Expr e) (ops : NonEmpty.ArrayCorrectByConstruction.NonEmptyArray (QualifiedName Operator × Expr e)) :
       Expr e
     | OpName (name : QualifiedName Operator) : Expr e
     | Negate (token : SourceToken) (expr : Expr e) : Expr e
     | RecordAccessor (data : RecordAccessorRecursive e) : Expr e
     | RecordUpdate (expr : Expr e) (updates : DelimitedNonEmpty (RecordUpdateRecursive e)) : Expr e
-    | App (fn : Expr e) (args : NonEmpty.CorrectByConstruction.Array.NonEmptyArray (AppSpineRecursive e)) : Expr e
+    | App (fn : Expr e) (args : NonEmpty.ArrayCorrectByConstruction.NonEmptyArray (AppSpineRecursive e)) : Expr e
     | Lambda (data : LambdaRecursive e) : Expr e
     | If (data : IfThenElseRecursive e) : Expr e
     | Case (data : CaseOfRecursive e) : Expr e

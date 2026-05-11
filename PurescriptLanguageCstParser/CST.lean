@@ -5,7 +5,7 @@ public import PurescriptLanguageCstParser.Traversal
 public import PurescriptLanguageCstParser.Print
 public import PurescriptLanguageCstParser.Errors
 public import PurescriptLanguageCstParser.Layout
-public import NonEmpty.CorrectByConstruction.Array
+public import NonEmpty.ArrayCorrectByConstruction
 public import PurescriptLanguageCstParser.GenerateFixed
 public import PurescriptLanguageCstParser.GenerateFixedTests
 public import PurescriptLanguageCstParser.Range
@@ -21,7 +21,7 @@ open PurescriptLanguageCstParser.Print
 open PurescriptLanguageCstParser.Errors
 open PurescriptLanguageCstParser.TokenStream
 open PurescriptLanguageCstParser.Parser.Monad
-open NonEmpty.CorrectByConstruction.Array
+open NonEmpty.ArrayCorrectByConstruction
 
 namespace PurescriptLanguageCstParser.CST
 

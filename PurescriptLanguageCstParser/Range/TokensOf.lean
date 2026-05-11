@@ -4,13 +4,13 @@ public import PurescriptLanguageCstParser.Types.PType
 public import PurescriptLanguageCstParser.Types.Module
 public import PurescriptLanguageCstParser.Errors
 public import PurescriptLanguageCstParser.Range.TokenList
-public import NonEmpty.CorrectByConstruction.Array
+public import NonEmpty.ArrayCorrectByConstruction
 
 namespace PurescriptLanguageCstParser.Range
 
 open PurescriptLanguageCstParser.Types
 open PurescriptLanguageCstParser.Range.TokenList
-open NonEmpty.CorrectByConstruction.Array
+open NonEmpty.ArrayCorrectByConstruction
 open PurescriptLanguageCstParser.Errors
 
 set_option autoImplicit false

@@ -1,12 +1,12 @@
 module
 
-public import NonEmpty.CorrectByConstruction.Array
+public import NonEmpty.ArrayCorrectByConstruction
 public import NonEmpty.String
 import PurescriptLanguageCstParser.GenerateFixed
 
 namespace PurescriptLanguageCstParser.Types
 
-open NonEmpty.CorrectByConstruction.Array
+open NonEmpty.ArrayCorrectByConstruction
 open NonEmpty.String
 
 @[expose] public section
