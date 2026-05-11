@@ -33,7 +33,7 @@ def trimSource (src : String) : String := Id.run do
       let trimLine (s : String) : String := (s.drop n).toString
       String.intercalate "\n" ((trimLine head) :: tail.map trimLine)
 
-def assertParse {f : Type → Type} [ParseFor f]
+def assertParse [ParseFor f]
     (name src : String) (k : RecoveredParserResult f → Bool) : IO Unit := do
   let res := ParseFor.parseFor (trimSource src)
   unless (k res) do

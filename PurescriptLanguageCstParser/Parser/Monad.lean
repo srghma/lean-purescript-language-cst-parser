@@ -41,17 +41,17 @@ instance [Inhabited α] : Inhabited (ParserResult α) where
 structure Parser (α : Type) where
   run : ParserState → ParserResult α
 
-def defer {α : Type} (k : Unit → Parser α) : Parser α :=
+def defer (k : Unit → Parser α) : Parser α :=
   { run := fun state => (k ()).run state }
 
-def fromParserResult {α : Type} : ParserResult α → Except PositionedError (α × Array PositionedError)
+def fromParserResult : ParserResult α → Except PositionedError (α × Array PositionedError)
   | .ParseFail error _ => .error error
   | .ParseSucc value state => .ok (value, state.errors)
 
-def runParser' {α : Type} (state : ParserState) (p : Parser α) : ParserResult α :=
+def runParser' (state : ParserState) (p : Parser α) : ParserResult α :=
   p.run state
 
-def runParser {α : Type} (stream : TokenStream) (p : Parser α) : Except PositionedError (α × Array PositionedError) :=
+def runParser (stream : TokenStream) (p : Parser α) : Except PositionedError (α × Array PositionedError) :=
   fromParserResult (runParser' (initialParserState stream) p)
 
 def appendConsumed (state1 state2 : ParserState) : ParserState :=
@@ -83,7 +83,7 @@ instance : Monad Parser where
   pure := Pure.pure
   bind := Bind.bind
 
-instance {α : Type} : OrElse (Parser α) where
+instance : OrElse (Parser α) where
   orElse := fun p1 p2 =>
     { run := fun state =>
         if state.consumed then
@@ -103,22 +103,22 @@ instance {α : Type} : OrElse (Parser α) where
                 (p2 ()).run state
           | .ParseSucc a st => .ParseSucc a st }
 
-def fail {α : Type} (error : PositionedError) : Parser α :=
+def fail (error : PositionedError) : Parser α :=
   { run := fun state => .ParseFail error state }
 
-def tryP {α : Type} (p : Parser α) : Parser α :=
+def tryP (p : Parser α) : Parser α :=
   { run := fun state =>
       match p.run state with
       | .ParseFail error st => .ParseFail error { st with consumed := state.consumed }
       | .ParseSucc a st => .ParseSucc a st }
 
-def lookAhead {α : Type} (p : Parser α) : Parser α :=
+def lookAhead (p : Parser α) : Parser α :=
   { run := fun state =>
       match p.run state with
       | .ParseFail error _ => .ParseFail error state
       | .ParseSucc a _ => .ParseSucc a state }
 
-def take {α : Type} (k : SourceToken → Except ParseError α) : Parser α :=
+def take (k : SourceToken → Except ParseError α) : Parser α :=
   { run := fun state =>
       match state.stream with
       | TokenStream.TokenError pos error _ _ => .ParseFail { position := pos, error } state
@@ -135,7 +135,7 @@ def eof : Parser (SourcePos × Array (Comment LineFeed)) :=
       | TokenStream.TokenEOF pos comments => .ParseSucc (pos, comments) { state with consumed := true }
       | TokenStream.TokenCons tok _ _ _ => .ParseFail { position := tok.range.start, error := .ExpectedEof tok.value } state }
 
-partial def many {α : Type} (p : Parser α) : Parser (Array α) :=
+partial def many (p : Parser α) : Parser (Array α) :=
   { run := fun state =>
       let rec go (acc : Array α) (st : ParserState) : ParserResult (Array α) :=
         let st' := if st.consumed then { st with consumed := false } else st
@@ -149,10 +149,10 @@ partial def many {α : Type} (p : Parser α) : Parser (Array α) :=
             go (acc.push a) (appendConsumed st st'')
       go #[] state }
 
-def optional {α : Type} (p : Parser α) : Parser (Option α) :=
+def optional (p : Parser α) : Parser (Option α) :=
   (some <$> p) <|> (pure (none : Option α))
 
-def recover {α : Type} (k : PositionedError → TokenStream → Option (α × TokenStream)) (p : Parser α) : Parser α :=
+def recover (k : PositionedError → TokenStream → Option (α × TokenStream)) (p : Parser α) : Parser α :=
   { run := fun state =>
       match p.run { state with consumed := false } with
       | .ParseFail err st =>

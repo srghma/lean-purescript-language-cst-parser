@@ -24,14 +24,12 @@ inductive LexResult (e : Type) (α : Type) where
   | ok    (val : α) (nextState : LexState)
   | error (err : e) (nextState : LexState)
 
--- instance {e α : Type} [Inhabited α] : Inhabited (LexResult e α) where
+-- instance [Inhabited α] : Inhabited (LexResult e α) where
 --   default := .ok default default
 
 def Lex (e : Type) (α : Type) := LexState → LexResult e α
 
 namespace Lex
-
-variable {e α β : Type}
 
 @[inline] def run (l : Lex e α) (st : LexState) : LexResult e α := l st
 

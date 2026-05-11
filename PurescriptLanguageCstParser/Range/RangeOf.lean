@@ -13,8 +13,6 @@ open PurescriptLanguageCstParser.Range.TokenList
 open NonEmpty.ArrayCorrectByConstruction
 open PurescriptLanguageCstParser.Errors
 
-set_option autoImplicit false
-
 class RangeOf (α : Type) where
   rangeOf (a : α) : SourceRange
 
@@ -35,40 +33,40 @@ instance : RangeOf RecoveredError where
     | _, _ =>
         { start := err.position, end_ := err.position }
 
-instance {a : Type} : RangeOf (Name a) where
+instance : RangeOf (Name a) where
   rangeOf n := n.token.range
 
-instance {a : Type} : RangeOf (QualifiedName a) where
+instance : RangeOf (QualifiedName a) where
   rangeOf n := n.token.range
 
-instance {a : Type} : RangeOf (Wrapped a) where
+instance : RangeOf (Wrapped a) where
   rangeOf w := { start := w.open_.range.start, end_ := w.close.range.end_ }
 
-def rangeOf_Separated_Helper {α : Type} (f : α → SourceRange) (s : Separated α) : SourceRange :=
+def rangeOf_Separated_Helper (f : α → SourceRange) (s : Separated α) : SourceRange :=
   match s.tail.back? with
   | some (_, last) => { start := (f s.head).start, end_ := (f last).end_ }
   | none => f s.head
 
-instance {a : Type} [RangeOf a] : RangeOf (Separated a) where
+instance [RangeOf a] : RangeOf (Separated a) where
   rangeOf s := rangeOf_Separated_Helper RangeOf.rangeOf s
 
-instance {a b : Type} [RangeOf a] [RangeOf b] : RangeOf (Labeled a b) where
+instance [RangeOf a] [RangeOf b] : RangeOf (Labeled a b) where
   rangeOf l := { start := (RangeOf.rangeOf l.label).start, end_ := (RangeOf.rangeOf l.value).end_ }
 
-instance {a : Type} [RangeOf a] : RangeOf (Prefixed a) where
+instance [RangeOf a] : RangeOf (Prefixed a) where
   rangeOf p :=
     match p.prefix_ with
     | some tok => { start := tok.range.start, end_ := (RangeOf.rangeOf p.value).end_ }
     | none => RangeOf.rangeOf p.value
 
 -- Note: Delimited is just a wrapper around Wrapped, which doesn't need RangeOf a.
-instance {a : Type} : RangeOf (Delimited a) where
+instance : RangeOf (Delimited a) where
   rangeOf | .mk w => { start := w.open_.range.start, end_ := w.close.range.end_ }
 
-instance {a : Type} : RangeOf (DelimitedNonEmpty a) where
+instance : RangeOf (DelimitedNonEmpty a) where
   rangeOf | .mk w => { start := w.open_.range.start, end_ := w.close.range.end_ }
 
-instance {a : Type} [RangeOf a] : RangeOf (OneOrDelimited a) where
+instance [RangeOf a] : RangeOf (OneOrDelimited a) where
   rangeOf o := match o with
     | .One a => RangeOf.rangeOf a
     | .Many as => RangeOf.rangeOf as
@@ -100,7 +98,7 @@ instance : RangeOf FixityFields where
 
 -- ── Recursive CST Implementation ────────────────────────────────────────────
 
-variable {e : Type} [RangeOf e]
+variable [RangeOf e]
 
 mutual
   partial def rangeOf_Type_ (t : Type_ e) : SourceRange := match t with
@@ -341,31 +339,31 @@ mutual
     { start := m.header.keyword.range.start, end_ := m.body.end_ }
 end
 
-instance {e : Type} [RangeOf e] : RangeOf (Type_ e) := ⟨rangeOf_Type_⟩
-instance {name e : Type} [RangeOf name] [RangeOf e] : RangeOf (TypeVarBinding name e) where
+instance [RangeOf e] : RangeOf (Type_ e) := ⟨rangeOf_Type_⟩
+instance [RangeOf name] [RangeOf e] : RangeOf (TypeVarBinding name e) where
   rangeOf := fun x => match x with
     | TypeVarBinding.Kinded w => RangeOf.rangeOf w
     | TypeVarBinding.Name n => RangeOf.rangeOf n
-instance {e : Type} [RangeOf e] : RangeOf (Export e) := ⟨rangeOf_Export⟩
-instance {e : Type} [RangeOf e] : RangeOf (Import e) := ⟨rangeOf_Import⟩
-instance {e : Type} [RangeOf e] : RangeOf (ImportDecl e) := ⟨rangeOf_ImportDecl⟩
-instance {e : Type} [RangeOf e] : RangeOf (ModuleHeader e) := ⟨rangeOf_ModuleHeader⟩
-instance {e : Type} [RangeOf e] : RangeOf (DataCtor e) := ⟨rangeOf_DataCtor⟩
-instance {e : Type} [RangeOf e] : RangeOf (Declaration e) := ⟨rangeOf_Declaration⟩
-instance {e : Type} [RangeOf e] : RangeOf (Instance e) := ⟨rangeOf_Instance⟩
-instance {e : Type} [RangeOf e] : RangeOf (GuardedRecursive e) := ⟨rangeOf_GuardedRecursive⟩
-instance {e : Type} [RangeOf e] : RangeOf (GuardedExprRecursive e) := ⟨rangeOf_GuardedExprRecursive⟩
-instance {e : Type} [RangeOf e] : RangeOf (PatternGuardRecursive e) := ⟨rangeOf_PatternGuardRecursive⟩
-instance {e : Type} [RangeOf e] : RangeOf (Foreign e) := ⟨rangeOf_Foreign⟩
-instance {e : Type} [RangeOf e] : RangeOf (InstanceBinding e) := ⟨rangeOf_InstanceBinding⟩
-instance {e : Type} [RangeOf e] : RangeOf (Expr e) := ⟨rangeOf_Expr⟩
-instance {e : Type} [RangeOf e] : RangeOf (AppSpineRecursive e) := ⟨rangeOf_AppSpineRecursive⟩
-instance {e : Type} [RangeOf e] : RangeOf (DoStatementRecursive e) := ⟨rangeOf_DoStatementRecursive⟩
-instance {e : Type} [RangeOf e] : RangeOf (LetBindingRecursive e) := ⟨rangeOf_LetBindingRecursive⟩
-instance {e : Type} [RangeOf e] : RangeOf (Binder e) := ⟨rangeOf_Binder⟩
-instance {e : Type} [RangeOf e] : RangeOf (WhereRecursive e) := ⟨rangeOf_WhereRecursive⟩
-instance {e : Type} [RangeOf e] : RangeOf (ModuleBody e) := ⟨rangeOf_ModuleBody⟩
-instance {e : Type} [RangeOf e] : RangeOf (Module e) := ⟨rangeOf_Module⟩
-instance {e : Type} [RangeOf e] : RangeOf (ValueBindingFieldsRecursive e) := ⟨rangeOf_ValueBindingFieldsRecursive⟩
+instance [RangeOf e] : RangeOf (Export e) := ⟨rangeOf_Export⟩
+instance [RangeOf e] : RangeOf (Import e) := ⟨rangeOf_Import⟩
+instance [RangeOf e] : RangeOf (ImportDecl e) := ⟨rangeOf_ImportDecl⟩
+instance [RangeOf e] : RangeOf (ModuleHeader e) := ⟨rangeOf_ModuleHeader⟩
+instance [RangeOf e] : RangeOf (DataCtor e) := ⟨rangeOf_DataCtor⟩
+instance [RangeOf e] : RangeOf (Declaration e) := ⟨rangeOf_Declaration⟩
+instance [RangeOf e] : RangeOf (Instance e) := ⟨rangeOf_Instance⟩
+instance [RangeOf e] : RangeOf (GuardedRecursive e) := ⟨rangeOf_GuardedRecursive⟩
+instance [RangeOf e] : RangeOf (GuardedExprRecursive e) := ⟨rangeOf_GuardedExprRecursive⟩
+instance [RangeOf e] : RangeOf (PatternGuardRecursive e) := ⟨rangeOf_PatternGuardRecursive⟩
+instance [RangeOf e] : RangeOf (Foreign e) := ⟨rangeOf_Foreign⟩
+instance [RangeOf e] : RangeOf (InstanceBinding e) := ⟨rangeOf_InstanceBinding⟩
+instance [RangeOf e] : RangeOf (Expr e) := ⟨rangeOf_Expr⟩
+instance [RangeOf e] : RangeOf (AppSpineRecursive e) := ⟨rangeOf_AppSpineRecursive⟩
+instance [RangeOf e] : RangeOf (DoStatementRecursive e) := ⟨rangeOf_DoStatementRecursive⟩
+instance [RangeOf e] : RangeOf (LetBindingRecursive e) := ⟨rangeOf_LetBindingRecursive⟩
+instance [RangeOf e] : RangeOf (Binder e) := ⟨rangeOf_Binder⟩
+instance [RangeOf e] : RangeOf (WhereRecursive e) := ⟨rangeOf_WhereRecursive⟩
+instance [RangeOf e] : RangeOf (ModuleBody e) := ⟨rangeOf_ModuleBody⟩
+instance [RangeOf e] : RangeOf (Module e) := ⟨rangeOf_Module⟩
+instance [RangeOf e] : RangeOf (ValueBindingFieldsRecursive e) := ⟨rangeOf_ValueBindingFieldsRecursive⟩
 
 end PurescriptLanguageCstParser.Range

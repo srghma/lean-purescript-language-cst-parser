@@ -40,7 +40,7 @@ def power (s : String) (n : USize) : String :=
       omega
   go "" n
 
-def printComment {l : Type} (k : l → String) : Comment l → String
+def printComment (k : l → String) : Comment l → String
   | .Comment str => str.toString
   | .Space n => power " " n
   | .Line l n => power (k l) n

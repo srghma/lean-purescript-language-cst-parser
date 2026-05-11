@@ -52,10 +52,10 @@ def dummyToken (value : Token) : SourceToken :=
   , value
   }
 
-def dummyName {α : Type} (name : α) (tok : SourceToken := dummyToken (.LowerName none (dummyNES "x"))) : Name α :=
+def dummyName (name : α) (tok : SourceToken := dummyToken (.LowerName none (dummyNES "x"))) : Name α :=
   { token := tok, name }
 
-def dummyQualifiedName {α : Type} (name : α) : QualifiedName α :=
+def dummyQualifiedName (name : α) : QualifiedName α :=
   { token := dummyToken (.UpperName none (dummyNES "X")), module_ := none, name }
 
 def dummyModuleHeader (moduleName : ModuleName) : ModuleHeader Empty :=
@@ -112,7 +112,7 @@ def dummyApp : Expr Empty :=
 def dummyString : Expr Empty :=
   Expr.String (dummyToken (.String "\"\"" "")) ""
 
-unsafe def toRecoveredParserResult {f : Type → Type} :
+unsafe def toRecoveredParserResult :
     Except PositionedError ((Recovered f) × Array PositionedError) → RecoveredParserResult f
   | .error err => .ParseFailed err
   | .ok (value, errors) =>
@@ -120,9 +120,9 @@ unsafe def toRecoveredParserResult {f : Type → Type} :
       | some nea => .ParseSucceededWithErrors value nea
       | none => .ParseSucceeded (unsafeCast value)
 
-unsafe def toRecovered {f : Type → Type} : f Empty → Recovered f := unsafeCast
+unsafe def toRecovered : f Empty → Recovered f := unsafeCast
 
-unsafe def runRecoveredParser {f : Type → Type} (_ : Parser (Recovered f)) (_ : TokenStream) : RecoveredParserResult f :=
+unsafe def runRecoveredParser (_ : Parser (Recovered f)) (_ : TokenStream) : RecoveredParserResult f :=
   .ParseFailed defaultError
 
 def lexModule (_ : String) : TokenStream :=
@@ -180,7 +180,7 @@ def parseType : String → RecoveredParserResult Type_ := fun src =>
 def parseBinder : String → RecoveredParserResult Binder := fun _ =>
   .ParseFailed defaultError
 
-def printModule {e : Type} (_ : Module e) : String :=
+def printModule (_ : Module e) : String :=
   ""
 
 end PurescriptLanguageCstParser.CST

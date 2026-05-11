@@ -23,7 +23,7 @@ open PurescriptLanguageCstParser.Types
 mutual
 
   -- ── Expr ───────────────────────────────────────────────────────────
-  @[simp] def Expr.map {e1 e2 : Type} (f : e1 → e2) : Expr e1 → Expr e2
+  @[simp] def Expr.map (f : e1 → e2) : Expr e1 → Expr e2
     | .Hole n             => .Hole n
     | .Section t          => .Section t
     | .Ident n            => .Ident n
@@ -84,7 +84,7 @@ mutual
       simp only at *; omega
 
   -- ── Delimited (Expr e) ─────────────────────────────────────────────
-  @[simp] def Expr.mapDelimited {e1 e2} (f : e1 → e2) : Delimited (Expr e1) → Delimited (Expr e2)
+  @[simp] def Expr.mapDelimited (f : e1 → e2) : Delimited (Expr e1) → Delimited (Expr e2)
     | .mk ⟨o, none,   c⟩ => .mk ⟨o, none, c⟩
     | .mk ⟨o, some s, c⟩ => .mk ⟨o, some (Expr.mapSep f s), c⟩
   termination_by d => sizeOf d
@@ -93,7 +93,7 @@ mutual
                Option.some.sizeOf_spec] at *; omega
 
   -- ── Separated (Expr e) ─────────────────────────────────────────────
-  @[simp] def Expr.mapSep {e1 e2} (f : e1 → e2) (s : Separated (Expr e1)) : Separated (Expr e2) :=
+  @[simp] def Expr.mapSep (f : e1 → e2) (s : Separated (Expr e1)) : Separated (Expr e2) :=
     { head := Expr.map f s.head
       tail := s.tail.attach.map (fun ⟨⟨tok, e⟩, _hmem⟩ => (tok, Expr.map f e)) }
   termination_by sizeOf s
@@ -105,7 +105,7 @@ mutual
       rw [this]; exact s.sizeOf_tail_get i hi
 
   -- ── Delimited (RecordLabeled (Expr e)) ─────────────────────────────
-  @[simp] def Expr.mapDelimitedRL {e1 e2} (f : e1 → e2)
+  @[simp] def Expr.mapDelimitedRL (f : e1 → e2)
       : Delimited (RecordLabeled (Expr e1)) → Delimited (RecordLabeled (Expr e2))
     | .mk ⟨o, none,   c⟩ => .mk ⟨o, none, c⟩
     | .mk ⟨o, some s, c⟩ => .mk ⟨o, some (Expr.mapSepRL f s), c⟩
@@ -115,7 +115,7 @@ mutual
                Option.some.sizeOf_spec] at *; omega
 
   -- ── Separated (RecordLabeled (Expr e)) ─────────────────────────────
-  @[simp] def Expr.mapSepRL {e1 e2} (f : e1 → e2)
+  @[simp] def Expr.mapSepRL (f : e1 → e2)
       (s : Separated (RecordLabeled (Expr e1))) : Separated (RecordLabeled (Expr e2)) :=
     { head := Expr.mapRL f s.head
       tail := s.tail.attach.map (fun ⟨⟨tok, rl⟩, _hmem⟩ => (tok, Expr.mapRL f rl)) }
@@ -128,7 +128,7 @@ mutual
       rw [this]; exact s.sizeOf_tail_get i hi
 
   -- ── RecordLabeled (Expr e) ─────────────────────────────────────────
-  @[simp] def Expr.mapRL {e1 e2} (f : e1 → e2) : RecordLabeled (Expr e1) → RecordLabeled (Expr e2)
+  @[simp] def Expr.mapRL (f : e1 → e2) : RecordLabeled (Expr e1) → RecordLabeled (Expr e2)
     | .Pun n           => .Pun n
     | .Field l sep e'  => .Field l sep (Expr.map f e')
   termination_by rl => sizeOf rl
@@ -137,7 +137,7 @@ mutual
     omega
 
   -- ── RecordAccessorRecursive ────────────────────────────────────────
-  @[simp] def RecordAccessorRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def RecordAccessorRecursive.map (f : e1 → e2)
       (data : RecordAccessorRecursive e1) : RecordAccessorRecursive e2 :=
     { expr := Expr.map f data.expr, dot := data.dot, path := data.path }
   termination_by sizeOf data
@@ -147,7 +147,7 @@ mutual
     omega
 
   -- ── RecordUpdateRecursive ──────────────────────────────────────────
-  @[simp] def RecordUpdateRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def RecordUpdateRecursive.map (f : e1 → e2)
       (u : RecordUpdateRecursive e1) : RecordUpdateRecursive e2 :=
     match u with
     | .Leaf l t e' => .Leaf l t (Expr.map f e')
@@ -160,7 +160,7 @@ mutual
       omega
 
   -- ── AppSpineRecursive ──────────────────────────────────────────────
-  @[simp] def AppSpineRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def AppSpineRecursive.map (f : e1 → e2)
       (s : AppSpineRecursive e1) : AppSpineRecursive e2 :=
     match s with
     | .Type_ t ty => .Type_ t (Type_.map f ty)
@@ -170,7 +170,7 @@ mutual
     all_goals simp_wf
 
   -- ── LambdaRecursive ────────────────────────────────────────────────
-  @[simp] def LambdaRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def LambdaRecursive.map (f : e1 → e2)
       (data : LambdaRecursive e1) : LambdaRecursive e2 :=
     { symbol := data.symbol, binders := data.binders.map (Binder.map f), arrow := data.arrow, body := Expr.map f data.body }
   termination_by sizeOf data
@@ -180,7 +180,7 @@ mutual
     omega
 
   -- ── IfThenElseRecursive ────────────────────────────────────────────
-  @[simp] def IfThenElseRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def IfThenElseRecursive.map (f : e1 → e2)
       (data : IfThenElseRecursive e1) : IfThenElseRecursive e2 :=
     { keyword := data.keyword, cond := Expr.map f data.cond, then_ := data.then_, true_ := Expr.map f data.true_, else_ := data.else_, false_ := Expr.map f data.false_ }
   termination_by sizeOf data
@@ -190,7 +190,7 @@ mutual
     all_goals omega
 
   -- ── CaseOfRecursive ────────────────────────────────────────────────
-  @[simp] def CaseOfRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def CaseOfRecursive.map (f : e1 → e2)
       (data : CaseOfRecursive e1) : CaseOfRecursive e2 :=
     { keyword := data.keyword
       head := Expr.mapSep f data.head
@@ -209,7 +209,7 @@ mutual
       omega
 
   -- ── GuardedRecursive ───────────────────────────────────────────────
-  @[simp] def GuardedRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def GuardedRecursive.map (f : e1 → e2)
       (g : GuardedRecursive e1) : GuardedRecursive e2 :=
     match g with
     | .Unconditional t w => .Unconditional t (WhereRecursive.map f w)
@@ -222,7 +222,7 @@ mutual
       omega
 
   -- ── GuardedExprRecursive ───────────────────────────────────────────
-  @[simp] def GuardedExprRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def GuardedExprRecursive.map (f : e1 → e2)
       (data : GuardedExprRecursive e1) : GuardedExprRecursive e2 :=
     { bar := data.bar
       patterns := data.patterns.attach.map (fun ⟨p, _hp⟩ => PatternGuardRecursive.map f p)
@@ -239,7 +239,7 @@ mutual
       omega
 
   -- ── PatternGuardRecursive ──────────────────────────────────────────
-  @[simp] def PatternGuardRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def PatternGuardRecursive.map (f : e1 → e2)
       (data : PatternGuardRecursive e1) : PatternGuardRecursive e2 :=
     {
       binder := data.binder.attach.map (fun ⟨(b, t), _ht⟩ => (b.map f, t)),
@@ -252,7 +252,7 @@ mutual
     omega
 
   -- ── LetInRecursive ─────────────────────────────────────────────────
-  @[simp] def LetInRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def LetInRecursive.map (f : e1 → e2)
       (data : LetInRecursive e1) : LetInRecursive e2 :=
     { keyword := data.keyword
       bindings := data.bindings.attach.map (fun ⟨b, _hb⟩ => LetBindingRecursive.map f b)
@@ -269,7 +269,7 @@ mutual
       omega
 
   -- ── LetBindingRecursive ────────────────────────────────────────────
-  @[simp] def LetBindingRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def LetBindingRecursive.map (f : e1 → e2)
       (b : LetBindingRecursive e1) : LetBindingRecursive e2 :=
     match b with
     | .Signature l => .Signature (Labeled.map_value (Type_.map f) l)
@@ -283,7 +283,7 @@ mutual
       omega
 
   -- ── ValueBindingFieldsRecursive ────────────────────────────────────
-  @[simp] def ValueBindingFieldsRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def ValueBindingFieldsRecursive.map (f : e1 → e2)
       (data : ValueBindingFieldsRecursive e1) : ValueBindingFieldsRecursive e2 :=
     {
       name := data.name
@@ -298,7 +298,7 @@ mutual
     omega
 
   -- ── WhereRecursive ─────────────────────────────────────────────────
-  @[simp] def WhereRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def WhereRecursive.map (f : e1 → e2)
       (data : WhereRecursive e1) : WhereRecursive e2 :=
     { expr := Expr.map f data.expr
       bindings := data.bindings.attach.map (fun ⟨(t, bs), _hbs⟩ => (t, bs.attach.map (fun ⟨b, _hb⟩ => LetBindingRecursive.map f b))) }
@@ -326,7 +326,7 @@ mutual
       omega
 
   -- ── DoBlockRecursive ───────────────────────────────────────────────
-  @[simp] def DoBlockRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def DoBlockRecursive.map (f : e1 → e2)
       (data : DoBlockRecursive e1) : DoBlockRecursive e2 :=
     { keyword := data.keyword
       statements := data.statements.attach.map (fun ⟨s, _hs⟩ => DoStatementRecursive.map f s) }
@@ -339,7 +339,7 @@ mutual
       omega
 
 -- ── AdoBlockRecursive ──────────────────────────────────────────────
-  @[simp] def AdoBlockRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def AdoBlockRecursive.map (f : e1 → e2)
       (data : AdoBlockRecursive e1) : AdoBlockRecursive e2 :=
     { keyword := data.keyword
       statements := data.statements.attach.map (fun ⟨s, _hs⟩ => DoStatementRecursive.map f s)
@@ -357,7 +357,7 @@ mutual
       omega
 
   -- ── DoStatementRecursive ───────────────────────────────────────────
-  @[simp] def DoStatementRecursive.map {e1 e2 : Type} (f : e1 → e2)
+  @[simp] def DoStatementRecursive.map (f : e1 → e2)
       (s : DoStatementRecursive e1) : DoStatementRecursive e2 :=
     match s with
     | .Let t bs => .Let t (bs.attach.map (fun ⟨b, _hb⟩ => LetBindingRecursive.map f b))

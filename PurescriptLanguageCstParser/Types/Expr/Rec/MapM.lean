@@ -19,7 +19,7 @@ open PurescriptLanguageCstParser.Types
 mutual
 
   -- ── Expr ───────────────────────────────────────────────────────────
-  @[simp] def Expr.mapM {e1 e2 : Type} {m : Type → Type} [Monad m] (f : e1 → m e2) : Expr e1 → m (Expr e2)
+  @[simp] def Expr.mapM [Monad m] (f : e1 → m e2) : Expr e1 → m (Expr e2)
     | .Hole n             => pure (.Hole n)
     | .Section t          => pure (.Section t)
     | .Ident n            => pure (.Ident n)
@@ -92,7 +92,7 @@ mutual
       simp only at *; omega
 
   -- ── Delimited (Expr e) ─────────────────────────────────────────────
-  @[simp] def Expr.mapMDelimited {e1 e2} {m} [Monad m] (f : e1 → m e2) : Delimited (Expr e1) → m (Delimited (Expr e2))
+  @[simp] def Expr.mapMDelimited [Monad m] (f : e1 → m e2) : Delimited (Expr e1) → m (Delimited (Expr e2))
     | .mk ⟨o, none,   c⟩ => pure (.mk ⟨o, none, c⟩)
     | .mk ⟨o, some s, c⟩ => do
         let s' ← Expr.mapMSep f s
@@ -103,7 +103,7 @@ mutual
                Option.some.sizeOf_spec] at *; omega
 
   -- ── Separated (Expr e) ─────────────────────────────────────────────
-  @[simp] def Expr.mapMSep {e1 e2} {m} [Monad m] (f : e1 → m e2) (s : Separated (Expr e1)) : m (Separated (Expr e2)) := do
+  @[simp] def Expr.mapMSep [Monad m] (f : e1 → m e2) (s : Separated (Expr e1)) : m (Separated (Expr e2)) := do
     let head ← Expr.mapM f s.head
     let tail ← s.tail.attach.mapM (fun ⟨⟨tok, e⟩, _hmem⟩ => do
       let e' ← Expr.mapM f e
@@ -118,7 +118,7 @@ mutual
       rw [this]; exact s.sizeOf_tail_get i hi
 
   -- ── Delimited (RecordLabeled (Expr e)) ─────────────────────────────
-  @[simp] def Expr.mapMDelimitedRL {e1 e2} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def Expr.mapMDelimitedRL [Monad m] (f : e1 → m e2)
       : Delimited (RecordLabeled (Expr e1)) → m (Delimited (RecordLabeled (Expr e2)))
     | .mk ⟨o, none,   c⟩ => pure (.mk ⟨o, none, c⟩)
     | .mk ⟨o, some s, c⟩ => do
@@ -130,7 +130,7 @@ mutual
                Option.some.sizeOf_spec] at *; omega
 
   -- ── Separated (RecordLabeled (Expr e)) ─────────────────────────────
-  @[simp] def Expr.mapMSepRL {e1 e2} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def Expr.mapMSepRL [Monad m] (f : e1 → m e2)
       (s : Separated (RecordLabeled (Expr e1))) : m (Separated (RecordLabeled (Expr e2))) := do
     let head ← Expr.mapMRL f s.head
     let tail ← s.tail.attach.mapM (fun ⟨⟨tok, rl⟩, _hmem⟩ => do
@@ -146,7 +146,7 @@ mutual
       rw [this]; exact s.sizeOf_tail_get i hi
 
   -- ── RecordLabeled (Expr e) ─────────────────────────────────────────
-  @[simp] def Expr.mapMRL {e1 e2} {m} [Monad m] (f : e1 → m e2) : RecordLabeled (Expr e1) → m (RecordLabeled (Expr e2))
+  @[simp] def Expr.mapMRL [Monad m] (f : e1 → m e2) : RecordLabeled (Expr e1) → m (RecordLabeled (Expr e2))
     | .Pun n           => pure (.Pun n)
     | .Field l sep e'  => .Field l sep <$> Expr.mapM f e'
   termination_by rl => sizeOf rl
@@ -155,7 +155,7 @@ mutual
     omega
 
   -- ── RecordAccessorRecursive ────────────────────────────────────────
-  @[simp] def RecordAccessorRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def RecordAccessorRecursive.mapM [Monad m] (f : e1 → m e2)
       (data : RecordAccessorRecursive e1) : m (RecordAccessorRecursive e2) := do
     let expr ← Expr.mapM f data.expr
     pure { expr := expr, dot := data.dot, path := data.path }
@@ -166,7 +166,7 @@ mutual
     omega
 
   -- ── RecordUpdateRecursive ──────────────────────────────────────────
-  @[simp] def RecordUpdateRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def RecordUpdateRecursive.mapM [Monad m] (f : e1 → m e2)
       (u : RecordUpdateRecursive e1) : m (RecordUpdateRecursive e2) :=
     match u with
     | .Leaf l t e' => .Leaf l t <$> Expr.mapM f e'
@@ -179,7 +179,7 @@ mutual
       omega
 
   -- ── AppSpineRecursive ──────────────────────────────────────────────
-  @[simp] def AppSpineRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def AppSpineRecursive.mapM [Monad m] (f : e1 → m e2)
       (s : AppSpineRecursive e1) : m (AppSpineRecursive e2) :=
     match s with
     | .Type_ t ty => .Type_ t <$> Type_.mapM f ty
@@ -189,7 +189,7 @@ mutual
     all_goals simp_wf
 
   -- ── LambdaRecursive ────────────────────────────────────────────────
-  @[simp] def LambdaRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def LambdaRecursive.mapM [Monad m] (f : e1 → m e2)
       (data : LambdaRecursive e1) : m (LambdaRecursive e2) := do
     let binders ← data.binders.mapM (Binder.mapM f)
     let body ← Expr.mapM f data.body
@@ -201,7 +201,7 @@ mutual
     omega
 
   -- ── IfThenElseRecursive ────────────────────────────────────────────
-  @[simp] def IfThenElseRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def IfThenElseRecursive.mapM [Monad m] (f : e1 → m e2)
       (data : IfThenElseRecursive e1) : m (IfThenElseRecursive e2) := do
     let cond ← Expr.mapM f data.cond
     let true_ ← Expr.mapM f data.true_
@@ -214,7 +214,7 @@ mutual
     all_goals omega
 
   -- ── CaseOfRecursive ────────────────────────────────────────────────
-  @[simp] def CaseOfRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def CaseOfRecursive.mapM [Monad m] (f : e1 → m e2)
       (data : CaseOfRecursive e1) : m (CaseOfRecursive e2) := do
     let head ← Expr.mapMSep f data.head
     let branches ← data.branches.attach.mapM (fun x => do
@@ -235,7 +235,7 @@ mutual
       omega
 
   -- ── GuardedRecursive ───────────────────────────────────────────────
-  @[simp] def GuardedRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def GuardedRecursive.mapM [Monad m] (f : e1 → m e2)
       (g : GuardedRecursive e1) : m (GuardedRecursive e2) :=
     match g with
     | .Unconditional t w => .Unconditional t <$> WhereRecursive.mapM f w
@@ -248,7 +248,7 @@ mutual
       omega
 
   -- ── GuardedExprRecursive ───────────────────────────────────────────
-  @[simp] def GuardedExprRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def GuardedExprRecursive.mapM [Monad m] (f : e1 → m e2)
       (data : GuardedExprRecursive e1) : m (GuardedExprRecursive e2) := do
     let patterns ← data.patterns.attach.mapM (fun ⟨p, _hp⟩ => PatternGuardRecursive.mapM f p)
     let where_ ← WhereRecursive.mapM f data.where_
@@ -264,7 +264,7 @@ mutual
       omega
 
   -- ── PatternGuardRecursive ──────────────────────────────────────────
-  @[simp] def PatternGuardRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def PatternGuardRecursive.mapM [Monad m] (f : e1 → m e2)
       (data : PatternGuardRecursive e1) : m (PatternGuardRecursive e2) := do
     let binder ← data.binder.mapM (fun (b, t) => do
       let b' ← Binder.mapM f b
@@ -278,7 +278,7 @@ mutual
     omega
 
   -- ── LetInRecursive ─────────────────────────────────────────────────
-  @[simp] def LetInRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def LetInRecursive.mapM [Monad m] (f : e1 → m e2)
       (data : LetInRecursive e1) : m (LetInRecursive e2) := do
     let bindings ← data.bindings.attach.mapM (fun ⟨b, _hb⟩ => LetBindingRecursive.mapM f b)
     let body ← Expr.mapM f data.body
@@ -294,7 +294,7 @@ mutual
       omega
 
   -- ── LetBindingRecursive ────────────────────────────────────────────
-  @[simp] def LetBindingRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def LetBindingRecursive.mapM [Monad m] (f : e1 → m e2)
       (b : LetBindingRecursive e1) : m (LetBindingRecursive e2) :=
     match b with
     | .Signature l => .Signature <$> Labeled.mapM_value (Type_.mapM f) l
@@ -308,7 +308,7 @@ mutual
       omega
 
   -- ── ValueBindingFieldsRecursive ────────────────────────────────────
-  @[simp] def ValueBindingFieldsRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def ValueBindingFieldsRecursive.mapM [Monad m] (f : e1 → m e2)
       (data : ValueBindingFieldsRecursive e1) : m (ValueBindingFieldsRecursive e2) := do
     let binders ← data.binders.mapM (Binder.mapM f)
     let guarded ← GuardedRecursive.mapM f data.guarded
@@ -321,7 +321,7 @@ mutual
     omega
 
   -- ── WhereRecursive ─────────────────────────────────────────────────
-  @[simp] def WhereRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def WhereRecursive.mapM [Monad m] (f : e1 → m e2)
       (data : WhereRecursive e1) : m (WhereRecursive e2) := do
     let expr ← Expr.mapM f data.expr
     let bindings ← data.bindings.attach.mapM (fun ⟨(t, bs), _hbs⟩ => do
@@ -350,7 +350,7 @@ mutual
       omega
 
   -- ── DoBlockRecursive ───────────────────────────────────────────────
-  @[simp] def DoBlockRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def DoBlockRecursive.mapM [Monad m] (f : e1 → m e2)
       (data : DoBlockRecursive e1) : m (DoBlockRecursive e2) := do
     let statements ← data.statements.attach.mapM (fun ⟨s, _hs⟩ => DoStatementRecursive.mapM f s)
     pure { keyword := data.keyword, statements := statements }
@@ -363,7 +363,7 @@ mutual
       omega
 
 -- ── AdoBlockRecursive ──────────────────────────────────────────────
-  @[simp] def AdoBlockRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def AdoBlockRecursive.mapM [Monad m] (f : e1 → m e2)
       (data : AdoBlockRecursive e1) : m (AdoBlockRecursive e2) := do
     let statements ← data.statements.attach.mapM (fun ⟨s, _hs⟩ => DoStatementRecursive.mapM f s)
     let result ← Expr.mapM f data.result
@@ -380,7 +380,7 @@ mutual
       omega
 
   -- ── DoStatementRecursive ───────────────────────────────────────────
-  @[simp] def DoStatementRecursive.mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2)
+  @[simp] def DoStatementRecursive.mapM [Monad m] (f : e1 → m e2)
       (s : DoStatementRecursive e1) : m (DoStatementRecursive e2) :=
     match s with
     | .Let t bs => .Let t <$> bs.attach.mapM (fun ⟨b, _hb⟩ => LetBindingRecursive.mapM f b)

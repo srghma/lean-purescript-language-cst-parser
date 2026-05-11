@@ -27,12 +27,12 @@ inductive InstanceBinding (e : Type)
 
 namespace InstanceBinding
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (i : InstanceBinding α) : InstanceBinding β :=
+@[always_inline, simp] def map (f : α → β) (i : InstanceBinding α) : InstanceBinding β :=
   match i with
   | Signature l => Signature (l.map_value (fun t => t.map f))
   | Name fields => Name (fields.map f)
 
-@[simp] theorem map_id {e : Type} (i : InstanceBinding e) : i.map id = i := by
+@[simp] theorem map_id (i : InstanceBinding e) : i.map id = i := by
   cases i
   simp only [map, Type_.map_id, Signature.injEq]
   rfl
@@ -40,7 +40,7 @@ namespace InstanceBinding
     Array.map_id_fun', id_eq, Name.injEq]
   grind?
 
-@[simp] theorem map_comp {e1 e2 e3 : Type} (f : e1 → e2) (g : e2 → e3) (i : InstanceBinding e1) : i.map (g ∘ f) = (i.map f).map g := by
+@[simp] theorem map_comp (f : e1 → e2) (g : e2 → e3) (i : InstanceBinding e1) : i.map (g ∘ f) = (i.map f).map g := by
   cases i <;> simp only [map, Type_.map_comp, Signature.injEq]
   rfl
   grind?
@@ -51,7 +51,7 @@ instance : LawfulFunctor InstanceBinding where
   id_map := map_id
   comp_map := map_comp
 
-@[always_inline, simp] def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (i : InstanceBinding α) : m (InstanceBinding β) :=
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (i : InstanceBinding α) : m (InstanceBinding β) :=
   match i with
   | .Signature l => .Signature <$> l.mapM_value (Type_.mapM f)
   | .Name fields => .Name <$> ValueBindingFieldsRecursive.mapM f fields
@@ -65,12 +65,12 @@ structure Instance (e : Type) where
 
 namespace Instance
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (i : Instance α) : Instance β :=
+@[always_inline, simp] def map (f : α → β) (i : Instance α) : Instance β :=
   { head := i.head.map f
     body := i.body.map (fun (t, b) => (t, b.map (fun b' => b'.map f)))
   }
 
-@[simp] theorem map_id {e : Type} (i : Instance e) : i.map id = i := by
+@[simp] theorem map_id (i : Instance e) : i.map id = i := by
   cases i
   simp only [map, InstanceHead.map, functor_map_id, id_map, Option.map_id_fun', id_eq,
     Array.map_id_fun, NonEmptyArray.map, InstanceBinding.map, Type_.map_id,
@@ -78,7 +78,7 @@ namespace Instance
     Array.map_id_fun', mk.injEq, true_and]
   grind?
 
-@[simp] theorem map_comp {e1 e2 e3 : Type} (f : e1 → e2) (g : e2 → e3) (i : Instance e1) : i.map (g ∘ f) = (i.map f).map g := by
+@[simp] theorem map_comp (f : e1 → e2) (g : e2 → e3) (i : Instance e1) : i.map (g ∘ f) = (i.map f).map g := by
   cases i
   grind?
 
@@ -88,7 +88,7 @@ instance : LawfulFunctor Instance where
   id_map := map_id
   comp_map := map_comp
 
-@[always_inline, simp] def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (i : Instance α) : m (Instance β) := do
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (i : Instance α) : m (Instance β) := do
   let head ← InstanceHead.mapM f i.head
   let body ← i.body.mapM (fun (t, b) => do pure (t, ← b.mapM (InstanceBinding.mapM f)))
   pure { head := head, body := body }
@@ -113,7 +113,7 @@ inductive Declaration (e : Type)
 
 namespace Declaration
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (d : Declaration α) : Declaration β :=
+@[always_inline, simp] def map (f : α → β) (d : Declaration α) : Declaration β :=
   match d with
   | Data h s => Data (h.map f) (s.map (fun (t, sep) => (t, sep.map (fun c => c.map f))))
   | Type_ h t ty => Type_ (h.map f) t (ty.map f)
@@ -129,7 +129,7 @@ namespace Declaration
   | Role t1 t2 n r => Role t1 t2 n r
   | Error d' => Error (f d')
 
-@[simp] theorem map_id {e : Type} (d : Declaration e) : d.map id = d := by
+@[simp] theorem map_id (d : Declaration e) : d.map id = d := by
   cases d
   · simp_all only [map, DataHead.map, functor_map_id, Array.map_id_fun, id_eq, Separated.map, DataCtor.map,
     Array.map_id_fun', Option.map_id_fun']
@@ -204,7 +204,7 @@ namespace Declaration
   · simp_all only [map]
   · simp_all only [map, id_eq]
 
-@[simp] theorem map_comp {e1 e2 e3 : Type} (f : e1 → e2) (g : e2 → e3) (d : Declaration e1) : d.map (g ∘ f) = (d.map f).map g := by
+@[simp] theorem map_comp (f : e1 → e2) (g : e2 → e3) (d : Declaration e1) : d.map (g ∘ f) = (d.map f).map g := by
   cases d
   simp_all only [map, DataHead.map, functor_map_comp, Separated.map, DataCtor.map, Array.map_map, Option.map_map,
     Data.injEq, true_and]
@@ -294,7 +294,7 @@ instance : LawfulFunctor Declaration where
   id_map := map_id
   comp_map := map_comp
 
-@[always_inline, simp] def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (d : Declaration α) : m (Declaration β) :=
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (d : Declaration α) : m (Declaration β) :=
   match d with
   | Data h s => Data <$> DataHead.mapM f h <*> s.mapM (fun (t, sep) => do pure (t, ← sep.mapM (DataCtor.mapM f)))
   | Type_ h t ty => Type_ <$> DataHead.mapM f h <*> pure t <*> Type_.mapM f ty
@@ -322,7 +322,7 @@ structure ModuleBody (e : Type) where
 
 namespace ModuleBody
 
-@[always_inline, simp] def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (b : ModuleBody α) : m (ModuleBody β) := do
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (b : ModuleBody α) : m (ModuleBody β) := do
   let decls ← b.decls.mapM (Declaration.mapM f)
   pure { decls := decls, trailingComments := b.trailingComments, end_ := b.end_ }
 
@@ -335,7 +335,7 @@ structure Module (e : Type) where
 
 namespace Module
 
-@[always_inline, simp] def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (m_ : Module α) : m (Module β) := do
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (m_ : Module α) : m (Module β) := do
   let header ← ModuleHeader.mapM f m_.header
   let body ← ModuleBody.mapM f m_.body
   pure { header := header, body := body }

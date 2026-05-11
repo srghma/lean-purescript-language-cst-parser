@@ -8,7 +8,7 @@ meta import PurescriptLanguageCstParser.GenerateFixed
 
 @[expose] public section
 
-@[simp] theorem Array.sizeOf_attach_elem {α : Type} [SizeOf α] (arr : Array α) (x : { x // x ∈ arr }) :
+@[simp] theorem Array.sizeOf_attach_elem [SizeOf α] (arr : Array α) (x : { x // x ∈ arr }) :
     sizeOf x.val < sizeOf arr := by
   let ⟨val, h⟩ := x
   obtain ⟨i, hi, hval⟩ := Array.mem_iff_getElem.mp h
@@ -39,7 +39,7 @@ inductive Export (e : Type)
 
 namespace Export
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (e : Export α) : Export β :=
+@[always_inline, simp] def map (f : α → β) (e : Export α) : Export β :=
   match e with
   | .Value n        => .Value n
   | .Op n           => .Op n
@@ -49,17 +49,17 @@ namespace Export
   | .Module t n     => .Module t n
   | .Error d        => .Error (f d)
 
-@[simp] theorem id_map {α : Type} (e : Export α) : (e.map id) = e := by
+@[simp] theorem id_map (e : Export α) : (e.map id) = e := by
   cases e <;> rfl
 
-@[simp] theorem comp_map {α β γ : Type} (f : α → β) (g : β → γ) (e : Export α) : (e.map (g ∘ f)) = (e.map f |>.map g) := by
+@[simp] theorem comp_map (f : α → β) (g : β → γ) (e : Export α) : (e.map (g ∘ f)) = (e.map f |>.map g) := by
   cases e <;> rfl
 
-@[simp] theorem map_id_fun {α : Type} : map (id : α → α) = id := by funext e; exact id_map e
+@[simp] theorem map_id_fun : map (id : α → α) = id := by funext e; exact id_map e
 
-@[simp] theorem map_comp_fun {α β γ : Type} (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext e; exact comp_map f g e
+@[simp] theorem map_comp_fun (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext e; exact comp_map f g e
 
-@[always_inline, simp] def mapM {m : Type → Type} [Applicative m] {α β : Type} (f : α → m β) (e : Export α) : m (Export β) :=
+@[always_inline, simp] def mapM [Applicative m] (f : α → m β) (e : Export α) : m (Export β) :=
   match e with
   | .Error d => .Error <$> f d
   | .Value n        => pure (.Value n)
@@ -88,18 +88,18 @@ structure DataHead (e : Type) where
 
 namespace DataHead
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (h : DataHead α) : DataHead β :=
+@[always_inline, simp] def map (f : α → β) (h : DataHead α) : DataHead β :=
   { h with parameters := h.parameters.map (Functor.map (Functor.map f)) }
 
-@[simp] theorem id_map {α : Type} (h : DataHead α) : (h.map id) = h := by
+@[simp] theorem id_map (h : DataHead α) : (h.map id) = h := by
   cases h; aesop
 
-@[simp] theorem comp_map {α β γ : Type} (f : α → β) (g : β → γ) (h : DataHead α) : (h.map (g ∘ f)) = (h.map f |>.map g) := by
+@[simp] theorem comp_map (f : α → β) (g : β → γ) (h : DataHead α) : (h.map (g ∘ f)) = (h.map f |>.map g) := by
   cases h; aesop
 
-@[simp] theorem map_id_fun {α : Type} : map (id : α → α) = id := by funext h; exact id_map h
+@[simp] theorem map_id_fun : map (id : α → α) = id := by funext h; exact id_map h
 
-@[simp] theorem map_comp_fun {α β γ : Type} (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext h; exact comp_map f g h
+@[simp] theorem map_comp_fun (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext h; exact comp_map f g h
 
 instance : Functor DataHead where map := map
 instance : LawfulFunctor DataHead where
@@ -107,7 +107,7 @@ instance : LawfulFunctor DataHead where
   id_map := id_map
   comp_map := comp_map
 
-@[always_inline, simp] def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (h : DataHead α) : m (DataHead β) :=
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (h : DataHead α) : m (DataHead β) :=
   DataHead.mk h.keyword h.name <$> h.parameters.mapM (TypeVarBinding.mapM (Type_.mapM f))
 
 end DataHead
@@ -127,18 +127,18 @@ structure DataCtor (e : Type) where
 
 namespace DataCtor
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (c : DataCtor α) : DataCtor β :=
+@[always_inline, simp] def map (f : α → β) (c : DataCtor α) : DataCtor β :=
   { c with parameters := c.parameters.map (Functor.map f) }
 
-@[simp] theorem id_map {α : Type} (c : DataCtor α) : (c.map id) = c := by
+@[simp] theorem id_map (c : DataCtor α) : (c.map id) = c := by
   cases c; aesop
 
-@[simp] theorem comp_map {α β γ : Type} (f : α → β) (g : β → γ) (c : DataCtor α) : (c.map (g ∘ f)) = (c.map f |>.map g) := by
+@[simp] theorem comp_map (f : α → β) (g : β → γ) (c : DataCtor α) : (c.map (g ∘ f)) = (c.map f |>.map g) := by
   cases c; aesop
 
-@[simp] theorem map_id_fun {α : Type} : map (id : α → α) = id := by funext c; exact id_map c
+@[simp] theorem map_id_fun : map (id : α → α) = id := by funext c; exact id_map c
 
-@[simp] theorem map_comp_fun {α β γ : Type} (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext c; exact comp_map f g c
+@[simp] theorem map_comp_fun (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext c; exact comp_map f g c
 
 instance : Functor DataCtor where map := map
 instance : LawfulFunctor DataCtor where
@@ -146,7 +146,7 @@ instance : LawfulFunctor DataCtor where
   id_map := id_map
   comp_map := comp_map
 
-@[always_inline, simp] def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (c : DataCtor α) : m (DataCtor β) := do
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (c : DataCtor α) : m (DataCtor β) := do
   let params ← c.parameters.mapM (Type_.mapM f)
   pure { c with parameters := params }
 
@@ -175,21 +175,21 @@ structure ClassHead (e : Type) where
 
 namespace ClassHead
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (h : ClassHead α) : ClassHead β :=
+@[always_inline, simp] def map (f : α → β) (h : ClassHead α) : ClassHead β :=
   { h with
     typeConstraint := h.typeConstraint.map (fun (o, t) => (Functor.map (Functor.map f) o, t))
     parameters := h.parameters.map (Functor.map (Functor.map f))
   }
 
-@[simp] theorem id_map {α : Type} (h : ClassHead α) : (h.map id) = h := by
+@[simp] theorem id_map (h : ClassHead α) : (h.map id) = h := by
   cases h; aesop
 
-@[simp] theorem comp_map {α β γ : Type} (f : α → β) (g : β → γ) (h : ClassHead α) : (h.map (g ∘ f)) = (h.map f |>.map g) := by
+@[simp] theorem comp_map (f : α → β) (g : β → γ) (h : ClassHead α) : (h.map (g ∘ f)) = (h.map f |>.map g) := by
   cases h; aesop
 
-@[simp] theorem map_id_fun {α : Type} : map (id : α → α) = id := by funext h; exact id_map h
+@[simp] theorem map_id_fun : map (id : α → α) = id := by funext h; exact id_map h
 
-@[simp] theorem map_comp_fun {α β γ : Type} (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext h; exact comp_map f g h
+@[simp] theorem map_comp_fun (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext h; exact comp_map f g h
 
 instance : Functor ClassHead where map := map
 instance : LawfulFunctor ClassHead where
@@ -197,7 +197,7 @@ instance : LawfulFunctor ClassHead where
   id_map := id_map
   comp_map := comp_map
 
-@[always_inline, simp] def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (h : ClassHead α) : m (ClassHead β) := do
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (h : ClassHead α) : m (ClassHead β) := do
   let tc ← h.typeConstraint.mapM (fun (o, t) => (·, t) <$> o.mapM (Type_.mapM f))
   let params ← h.parameters.mapM (TypeVarBinding.mapM (Type_.mapM f))
   pure { h with typeConstraint := tc, parameters := params }
@@ -215,21 +215,21 @@ structure InstanceHead (e : Type) where
 
 namespace InstanceHead
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (h : InstanceHead α) : InstanceHead β :=
+@[always_inline, simp] def map (f : α → β) (h : InstanceHead α) : InstanceHead β :=
   { h with
     constraints := h.constraints.map (fun (o, t) => (Functor.map (Functor.map f) o, t))
     types := h.types.map (Functor.map f)
   }
 
-@[simp] theorem id_map {α : Type} (h : InstanceHead α) : (h.map id) = h := by
+@[simp] theorem id_map (h : InstanceHead α) : (h.map id) = h := by
   cases h; aesop
 
-@[simp] theorem comp_map {α β γ : Type} (f : α → β) (g : β → γ) (h : InstanceHead α) : (h.map (g ∘ f)) = (h.map f |>.map g) := by
+@[simp] theorem comp_map (f : α → β) (g : β → γ) (h : InstanceHead α) : (h.map (g ∘ f)) = (h.map f |>.map g) := by
   cases h; aesop
 
-@[simp] theorem map_id_fun {α : Type} : map (id : α → α) = id := by funext h; exact id_map h
+@[simp] theorem map_id_fun : map (id : α → α) = id := by funext h; exact id_map h
 
-@[simp] theorem map_comp_fun {α β γ : Type} (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext h; exact comp_map f g h
+@[simp] theorem map_comp_fun (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext h; exact comp_map f g h
 
 instance : Functor InstanceHead where map := map
 instance : LawfulFunctor InstanceHead where
@@ -237,7 +237,7 @@ instance : LawfulFunctor InstanceHead where
   id_map := id_map
   comp_map := comp_map
 
-@[always_inline, simp] def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (h : InstanceHead α) : m (InstanceHead β) := do
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (h : InstanceHead α) : m (InstanceHead β) := do
   let tc ← h.constraints.mapM (fun (o, t) => (·, t) <$> o.mapM (Type_.mapM f))
   let tys ← h.types.mapM (Type_.mapM f)
   pure { h with constraints := tc, types := tys }
@@ -256,45 +256,45 @@ inductive RecordLabeled (a : Type)
 
 namespace RecordLabeled
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (r : RecordLabeled α) : RecordLabeled β :=
+@[always_inline, simp] def map (f : α → β) (r : RecordLabeled α) : RecordLabeled β :=
   match r with
   | .Pun n         => .Pun n
   | .Field l sep v => .Field l sep (f v)
 
-@[simp] theorem id_map {α : Type} (r : RecordLabeled α) : (r.map id) = r := by
+@[simp] theorem id_map (r : RecordLabeled α) : (r.map id) = r := by
   cases r <;> rfl
 
-@[simp] theorem comp_map {α β γ : Type} (f : α → β) (g : β → γ) (r : RecordLabeled α) : (r.map (g ∘ f)) = (r.map f |>.map g) := by
+@[simp] theorem comp_map (f : α → β) (g : β → γ) (r : RecordLabeled α) : (r.map (g ∘ f)) = (r.map f |>.map g) := by
   cases r <;> rfl
 
-theorem map_id' {α : Type} (r : RecordLabeled α) (f : α → α) (hf : ∀ x, f x = x) : r.map f = r := by
+theorem map_id' (r : RecordLabeled α) (f : α → α) (hf : ∀ x, f x = x) : r.map f = r := by
   cases r <;> simp only [map, Field.injEq, true_and]
   simp_all only
 
-theorem map_comp' {α β γ : Type} (r : RecordLabeled α) (f : α → β) (g : β → γ) (h : α → γ) (hh : ∀ x, h x = g (f x)) :
+theorem map_comp' (r : RecordLabeled α) (f : α → β) (g : β → γ) (h : α → γ) (hh : ∀ x, h x = g (f x)) :
   r.map h = (r.map f).map g := by
   cases r <;> simp only [map, hh]
 
-@[simp] theorem functor_map_id {α : Type} : map (id : α → α) = id := by funext e; exact id_map e
+@[simp] theorem functor_map_id : map (id : α → α) = id := by funext e; exact id_map e
 
-@[simp] theorem functor_map_comp {α β γ : Type} (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext e; exact comp_map f g e
+@[simp] theorem functor_map_comp (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext e; exact comp_map f g e
 
-theorem sizeOf_field_value {α : Type} [SizeOf α]
+theorem sizeOf_field_value [SizeOf α]
     (l : Name Label) (sep : SourceToken) (v : α) :
     sizeOf v < sizeOf (RecordLabeled.Field l sep v) := by
   rw [RecordLabeled.Field.sizeOf_spec]; omega
 
 -- The real issue is that `field.map (fun b_in => map f b_in)` passes `b_in` as a lambda argument, and Lean generates a termination goal for every possible `b_in` — including the impossible `Pun` case where the function is never actually called.
 -- The solution: add a `Membership` instance for `RecordLabeled` and a `sizeOf_attach_elem` lemma
-instance {α : Type} : Membership α (RecordLabeled α) where
+instance : Membership α (RecordLabeled α) where
   mem r a := match r with
     | .Pun _     => False
     | .Field _ _ v => a = v
 
-@[simp] theorem mem_def {α : Type} (a : α) (r : RecordLabeled α) :
+@[simp] theorem mem_def (a : α) (r : RecordLabeled α) :
     a ∈ r ↔ match r with | .Pun _ => False | .Field _ _ v => a = v := Iff.rfl
 
-@[simp] theorem sizeOf_attach_elem {α : Type} [SizeOf α] (r : RecordLabeled α)
+@[simp] theorem sizeOf_attach_elem [SizeOf α] (r : RecordLabeled α)
     (x : { x // x ∈ r }) : sizeOf x.val < sizeOf r := by
   obtain ⟨val, property⟩ := x
   cases r with
@@ -305,20 +305,20 @@ instance {α : Type} : Membership α (RecordLabeled α) where
     rw [RecordLabeled.Field.sizeOf_spec]
     grind only
 
-def attach {α : Type} (r : RecordLabeled α) : RecordLabeled { x // x ∈ r } :=
+def attach (r : RecordLabeled α) : RecordLabeled { x // x ∈ r } :=
   match r with
   | .Pun n     => .Pun n
   | .Field l sep v => .Field l sep ⟨v, by simp only [mem_def]⟩
 
-@[simp] theorem attach_map {α β : Type} (r : RecordLabeled α) (f : α → β) :
+@[simp] theorem attach_map (r : RecordLabeled α) (f : α → β) :
     r.attach.map (fun x => f x.val) = r.map f := by
   cases r <;> rfl
 
-@[simp] theorem attach_map_val {α : Type} (r : RecordLabeled α) :
+@[simp] theorem attach_map_val (r : RecordLabeled α) :
     r.attach.map (fun x => x.val) = r := by
   cases r <;> rfl
 
-@[always_inline, simp] def mapM {m : Type → Type} [Applicative m] {α β : Type} (f : α → m β) (r : RecordLabeled α) : m (RecordLabeled β) := match r with | .Pun n => pure (.Pun n) | .Field l sep v => .Field l sep <$> f v
+@[always_inline, simp] def mapM [Applicative m] (f : α → m β) (r : RecordLabeled α) : m (RecordLabeled β) := match r with | .Pun n => pure (.Pun n) | .Field l sep v => .Field l sep <$> f v
 
 end RecordLabeled
 
@@ -350,7 +350,7 @@ inductive BinderF (e binder_e : Type)
 
 namespace BinderF
 
-@[always_inline, simp] def map_all {e e' binder_e binder_e' : Type} (f : e → e') (f_binder : binder_e → binder_e') (b : BinderF e binder_e) : BinderF e' binder_e' :=
+@[always_inline, simp] def map_all (f : e → e') (f_binder : binder_e → binder_e') (b : BinderF e binder_e) : BinderF e' binder_e' :=
   match b with
   | Wildcard t => Wildcard t
   | Var n => Var n
@@ -368,10 +368,10 @@ namespace BinderF
   | Op first ops => Op (f_binder first) (ops.map (fun (o, b) => (o, f_binder b)))
   | Error d => Error (f d)
 
-@[simp] theorem map_all_id {e binder_e : Type} (b : BinderF e binder_e) : b.map_all id id = b := by
+@[simp] theorem map_all_id (b : BinderF e binder_e) : b.map_all id id = b := by
   cases b <;> simp only [Array.map_id_fun, Array.map_id_fun', Delimited.map, NonEmptyArray.map, Separated.map_id_fun, Type_.map_id, Wrapped.map, functor_map_id, id_eq, id_map, map_all]
 
-@[simp] theorem map_all_comp {e1 e2 e3 binder_e1 binder_e2 binder_e3 : Type}
+@[simp] theorem map_all_comp
   (f1 : e1 → e2) (f2 : e2 → e3) (g1 : binder_e1 → binder_e2) (g2 : binder_e2 → binder_e3)
   (b : BinderF e1 binder_e1) :
   b.map_all (f2 ∘ f1) (g2 ∘ g1) = (b.map_all f1 g1).map_all f2 g2 := by
@@ -380,24 +380,24 @@ namespace BinderF
 @[always_inline, simp] def map_binder_e (f : binder_e → binder_e') (b : BinderF e binder_e) : BinderF e binder_e' :=
   b.map_all id f
 
-@[always_inline, simp] def map_e {e e' binder_e : Type} (f : e → e') (b : BinderF e binder_e) : BinderF e' binder_e :=
+@[always_inline, simp] def map_e (f : e → e') (b : BinderF e binder_e) : BinderF e' binder_e :=
   b.map_all f id
 
-@[simp] theorem map_e_id {e binder_e : Type} (b : BinderF e binder_e) : b.map_e id = b := by
+@[simp] theorem map_e_id (b : BinderF e binder_e) : b.map_e id = b := by
   rw [map_e, map_all_id]
 
-@[simp] theorem map_e_comp {e1 e2 e3 binder_e : Type} (f : e1 → e2) (g : e2 → e3) (b : BinderF e1 binder_e) : b.map_e (g ∘ f) = (b.map_e f).map_e g := by
+@[simp] theorem map_e_comp (f : e1 → e2) (g : e2 → e3) (b : BinderF e1 binder_e) : b.map_e (g ∘ f) = (b.map_e f).map_e g := by
   rw [map_e, map_e, map_e, ← map_all_comp f g id id]
   rfl
 
-@[simp] theorem map_binder_e_id {e binder_e : Type} (b : BinderF e binder_e) : b.map_binder_e id = b := by
+@[simp] theorem map_binder_e_id (b : BinderF e binder_e) : b.map_binder_e id = b := by
   rw [map_binder_e, map_all_id]
 
-@[simp] theorem map_binder_e_comp {e binder_e1 binder_e2 binder_e3 : Type} (f : binder_e1 → binder_e2) (g : binder_e2 → binder_e3) (b : BinderF e binder_e1) : b.map_binder_e (g ∘ f) = (b.map_binder_e f).map_binder_e g := by
+@[simp] theorem map_binder_e_comp (f : binder_e1 → binder_e2) (g : binder_e2 → binder_e3) (b : BinderF e binder_e1) : b.map_binder_e (g ∘ f) = (b.map_binder_e f).map_binder_e g := by
   rw [map_binder_e, map_binder_e, map_binder_e, ← map_all_comp id id f g]
   rfl
 
-@[always_inline, simp] def mapM_all {m : Type → Type} [Monad m] {e e' binder_e binder_e' : Type} (f : e → m e') (f_binder : binder_e → m binder_e') (b : BinderF e binder_e) : m (BinderF e' binder_e') :=
+@[always_inline, simp] def mapM_all [Monad m] (f : e → m e') (f_binder : binder_e → m binder_e') (b : BinderF e binder_e) : m (BinderF e' binder_e') :=
   match b with
   | Wildcard t => pure (Wildcard t)
   | Var n => pure (Var n)
@@ -464,7 +464,7 @@ namespace Binder
   simp only [Op.sizeOf_spec]; omega
 
 mutual
-  def map {e1 e2 : Type} (f : e1 → e2) (b : Binder e1) : Binder e2 :=
+  def map (f : e1 → e2) (b : Binder e1) : Binder e2 :=
     match b with
       | .Wildcard t         => .Wildcard t
       | .Var n              => .Var n
@@ -487,25 +487,25 @@ mutual
     · have := Array.sizeOf_lt_of_mem _hmem; omega
     · have := NonEmptyArray.sizeOf_lt_of_mem _hmem; simp only [Prod.mk.sizeOf_spec, gt_iff_lt] at *; omega
 
-  def mapDelimited {e1 e2 : Type} (f : e1 → e2) (d : Delimited (Binder e1)) : Delimited (Binder e2) :=
+  def mapDelimited (f : e1 → e2) (d : Delimited (Binder e1)) : Delimited (Binder e2) :=
     match d with
     | .mk w => .mk (mapWrappedOptionSeparated f w)
   termination_by sizeOf d
   decreasing_by all_goals (simp_all only [Delimited.mk.sizeOf_spec, Nat.lt_add_left_iff_pos, Nat.lt_add_one])
 
-  def mapWrappedOptionSeparated {e1 e2 : Type} (f : e1 → e2) (w : Wrapped (Option (Separated (Binder e1)))) : Wrapped (Option (Separated (Binder e2))) :=
+  def mapWrappedOptionSeparated (f : e1 → e2) (w : Wrapped (Option (Separated (Binder e1)))) : Wrapped (Option (Separated (Binder e2))) :=
     { w with value := mapOptionSeparated f w.value }
   termination_by sizeOf w
   decreasing_by all_goals (simp_all only [Wrapped.sizeOf_value])
 
-  def mapOptionSeparated {e1 e2 : Type} (f : e1 → e2) (o : Option (Separated (Binder e1))) : Option (Separated (Binder e2)) :=
+  def mapOptionSeparated (f : e1 → e2) (o : Option (Separated (Binder e1))) : Option (Separated (Binder e2)) :=
     match o with
     | none => none
     | some s => some (mapSeparated f s)
   termination_by sizeOf o
   decreasing_by all_goals (simp_all only [Option.some.sizeOf_spec, Nat.lt_add_left_iff_pos, Nat.lt_add_one])
 
-  def mapSeparated {e1 e2 : Type} (f : e1 → e2) (s : Separated (Binder e1)) : Separated (Binder e2) :=
+  def mapSeparated (f : e1 → e2) (s : Separated (Binder e1)) : Separated (Binder e2) :=
     { head := map f s.head, tail := s.tail.attach.map (fun ⟨⟨tok, b⟩, _hmem⟩ => (tok, map f b)) }
   termination_by sizeOf s
   decreasing_by
@@ -515,25 +515,25 @@ mutual
     rw [this]
     exact s.sizeOf_tail_get i hi
 
-  def mapDelimitedRecordLabeled {e1 e2 : Type} (f : e1 → e2) (fields : Delimited (RecordLabeled (Binder e1))) : Delimited (RecordLabeled (Binder e2)) :=
+  def mapDelimitedRecordLabeled (f : e1 → e2) (fields : Delimited (RecordLabeled (Binder e1))) : Delimited (RecordLabeled (Binder e2)) :=
     match fields with
     | .mk w => .mk (mapWrappedOptionSeparatedRecordLabeled f w)
   termination_by sizeOf fields
   decreasing_by all_goals (simp_all only [Delimited.mk.sizeOf_spec, Nat.lt_add_left_iff_pos, Nat.lt_add_one])
 
-  def mapWrappedOptionSeparatedRecordLabeled {e1 e2 : Type} (f : e1 → e2) (w : Wrapped (Option (Separated (RecordLabeled (Binder e1))))) : Wrapped (Option (Separated (RecordLabeled (Binder e2)))) :=
+  def mapWrappedOptionSeparatedRecordLabeled (f : e1 → e2) (w : Wrapped (Option (Separated (RecordLabeled (Binder e1))))) : Wrapped (Option (Separated (RecordLabeled (Binder e2)))) :=
     { w with value := mapOptionSeparatedRecordLabeled f w.value }
   termination_by sizeOf w
   decreasing_by all_goals (simp_all only [Wrapped.sizeOf_value])
 
-  def mapOptionSeparatedRecordLabeled {e1 e2 : Type} (f : e1 → e2) (o : Option (Separated (RecordLabeled (Binder e1)))) : Option (Separated (RecordLabeled (Binder e2))) :=
+  def mapOptionSeparatedRecordLabeled (f : e1 → e2) (o : Option (Separated (RecordLabeled (Binder e1)))) : Option (Separated (RecordLabeled (Binder e2))) :=
     match o with
     | none => none
     | some s => some (mapSeparatedRecordLabeled f s)
   termination_by sizeOf o
   decreasing_by all_goals (simp_all only [Option.some.sizeOf_spec, Nat.lt_add_left_iff_pos, Nat.lt_add_one])
 
-  def mapSeparatedRecordLabeled {e1 e2 : Type} (f : e1 → e2) (s : Separated (RecordLabeled (Binder e1))) : Separated (RecordLabeled (Binder e2)) :=
+  def mapSeparatedRecordLabeled (f : e1 → e2) (s : Separated (RecordLabeled (Binder e1))) : Separated (RecordLabeled (Binder e2)) :=
     { head := mapRecordLabeled f s.head, tail := s.tail.attach.map (fun ⟨⟨tok, rl⟩, _hmem⟩ => (tok, mapRecordLabeled f rl)) }
   termination_by sizeOf s
   decreasing_by
@@ -543,7 +543,7 @@ mutual
     rw [this]
     exact s.sizeOf_tail_get i hi
 
-  def mapRecordLabeled {e1 e2 : Type} (f : e1 → e2) (rl : RecordLabeled (Binder e1)) : RecordLabeled (Binder e2) :=
+  def mapRecordLabeled (f : e1 → e2) (rl : RecordLabeled (Binder e1)) : RecordLabeled (Binder e2) :=
     match rl with
     | .Pun n => .Pun n
     | .Field l sep v => .Field l sep (map f v)
@@ -552,7 +552,7 @@ mutual
     simp_wf
     grind only
 
-  def mapWrapped {e1 e2 : Type} (f : e1 → e2) (w : Wrapped (Binder e1)) : Wrapped (Binder e2) :=
+  def mapWrapped (f : e1 → e2) (w : Wrapped (Binder e1)) : Wrapped (Binder e2) :=
     { w with value := map f w.value }
   termination_by sizeOf w
   decreasing_by all_goals (simp_all only [Wrapped.sizeOf_value])
@@ -761,7 +761,7 @@ end
   cases d
   simp only [mapDelimitedRecordLabeled, mapWrappedOptionSeparatedRecordLabeled_id]
 
-@[simp] theorem mapArray_eq {e f : Type} (g : e → f) (arr : _root_.Array (Binder e)) :
+@[simp] theorem mapArray_eq (g : e → f) (arr : _root_.Array (Binder e)) :
     arr.map (map g) = arr.attach.map (fun ⟨b, _⟩ => map g b) := by
   simp only [Array.map_subtype, Array.unattach_attach]
 
@@ -1036,7 +1036,7 @@ instance : LawfulFunctor Binder where
 
 
 mutual
-  @[simp] def mapM {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2) (b : Binder e1) : m (Binder e2) :=
+  @[simp] def mapM [Monad m] (f : e1 → m e2) (b : Binder e1) : m (Binder e2) :=
     match b with
       | .Wildcard t         => pure (.Wildcard t)
       | .Var n              => pure (.Var n)
@@ -1059,26 +1059,26 @@ mutual
     · have := Array.sizeOf_lt_of_mem _hmem; omega
     · have := NonEmptyArray.sizeOf_lt_of_mem _hmem; simp only [Prod.mk.sizeOf_spec, gt_iff_lt] at *; omega
 
-  @[simp] def mapMDelimited {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2) (d : Delimited (Binder e1)) : m (Delimited (Binder e2)) :=
+  @[simp] def mapMDelimited [Monad m] (f : e1 → m e2) (d : Delimited (Binder e1)) : m (Delimited (Binder e2)) :=
     match d with
     | .mk w => .mk <$> mapMWrappedOptionSeparated f w
   termination_by sizeOf d
   decreasing_by all_goals (simp_all only [Delimited.mk.sizeOf_spec, Nat.lt_add_left_iff_pos, Nat.lt_add_one])
 
-  @[simp] def mapMWrappedOptionSeparated {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2) (w : Wrapped (Option (Separated (Binder e1)))) : m (Wrapped (Option (Separated (Binder e2)))) := do
+  @[simp] def mapMWrappedOptionSeparated [Monad m] (f : e1 → m e2) (w : Wrapped (Option (Separated (Binder e1)))) : m (Wrapped (Option (Separated (Binder e2)))) := do
     let val ← mapMOptionSeparated f w.value
     pure { w with value := val }
   termination_by sizeOf w
   decreasing_by all_goals (simp_all only [Wrapped.sizeOf_value])
 
-  @[simp] def mapMOptionSeparated {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2) (o : Option (Separated (Binder e1))) : m (Option (Separated (Binder e2))) :=
+  @[simp] def mapMOptionSeparated [Monad m] (f : e1 → m e2) (o : Option (Separated (Binder e1))) : m (Option (Separated (Binder e2))) :=
     match o with
     | none => pure none
     | some s => some <$> mapMSeparated f s
   termination_by sizeOf o
   decreasing_by all_goals (simp_all only [Option.some.sizeOf_spec, Nat.lt_add_left_iff_pos, Nat.lt_add_one])
 
-  @[simp] def mapMSeparated {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2) (s : Separated (Binder e1)) : m (Separated (Binder e2)) := do
+  @[simp] def mapMSeparated [Monad m] (f : e1 → m e2) (s : Separated (Binder e1)) : m (Separated (Binder e2)) := do
     let head ← mapM f s.head
     let tail ← s.tail.attach.mapM (fun ⟨⟨tok, b⟩, _hmem⟩ => do pure (tok, ← mapM f b))
     pure { head := head, tail := tail }
@@ -1090,26 +1090,26 @@ mutual
     rw [this]
     exact s.sizeOf_tail_get i hi
 
-  @[simp] def mapMDelimitedRecordLabeled {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2) (fields : Delimited (RecordLabeled (Binder e1))) : m (Delimited (RecordLabeled (Binder e2))) :=
+  @[simp] def mapMDelimitedRecordLabeled [Monad m] (f : e1 → m e2) (fields : Delimited (RecordLabeled (Binder e1))) : m (Delimited (RecordLabeled (Binder e2))) :=
     match fields with
     | .mk w => .mk <$> mapMWrappedOptionSeparatedRecordLabeled f w
   termination_by sizeOf fields
   decreasing_by all_goals (simp_all only [Delimited.mk.sizeOf_spec, Nat.lt_add_left_iff_pos, Nat.lt_add_one])
 
-  @[simp] def mapMWrappedOptionSeparatedRecordLabeled {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2) (w : Wrapped (Option (Separated (RecordLabeled (Binder e1))))) : m (Wrapped (Option (Separated (RecordLabeled (Binder e2))))) := do
+  @[simp] def mapMWrappedOptionSeparatedRecordLabeled [Monad m] (f : e1 → m e2) (w : Wrapped (Option (Separated (RecordLabeled (Binder e1))))) : m (Wrapped (Option (Separated (RecordLabeled (Binder e2))))) := do
     let val ← mapMOptionSeparatedRecordLabeled f w.value
     pure { w with value := val }
   termination_by sizeOf w
   decreasing_by all_goals (simp_all only [Wrapped.sizeOf_value])
 
-  @[simp] def mapMOptionSeparatedRecordLabeled {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2) (o : Option (Separated (RecordLabeled (Binder e1)))) : m (Option (Separated (RecordLabeled (Binder e2)))) :=
+  @[simp] def mapMOptionSeparatedRecordLabeled [Monad m] (f : e1 → m e2) (o : Option (Separated (RecordLabeled (Binder e1)))) : m (Option (Separated (RecordLabeled (Binder e2)))) :=
     match o with
     | none => pure none
     | some s => some <$> mapMSeparatedRecordLabeled f s
   termination_by sizeOf o
   decreasing_by all_goals (simp_all only [Option.some.sizeOf_spec, Nat.lt_add_left_iff_pos, Nat.lt_add_one])
 
-  @[simp] def mapMSeparatedRecordLabeled {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2) (s : Separated (RecordLabeled (Binder e1))) : m (Separated (RecordLabeled (Binder e2))) := do
+  @[simp] def mapMSeparatedRecordLabeled [Monad m] (f : e1 → m e2) (s : Separated (RecordLabeled (Binder e1))) : m (Separated (RecordLabeled (Binder e2))) := do
     let head ← mapMRecordLabeled f s.head
     let tail ← s.tail.attach.mapM (fun ⟨⟨tok, rl⟩, _hmem⟩ => do pure (tok, ← mapMRecordLabeled f rl))
     pure { head := head, tail := tail }
@@ -1121,7 +1121,7 @@ mutual
     rw [this]
     exact s.sizeOf_tail_get i hi
 
-  @[simp] def mapMRecordLabeled {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2) (rl : RecordLabeled (Binder e1)) : m (RecordLabeled (Binder e2)) :=
+  @[simp] def mapMRecordLabeled [Monad m] (f : e1 → m e2) (rl : RecordLabeled (Binder e1)) : m (RecordLabeled (Binder e2)) :=
     match rl with
     | .Pun n => pure (.Pun n)
     | .Field l sep v => .Field l sep <$> mapM f v
@@ -1130,7 +1130,7 @@ mutual
     simp_wf
     grind only
 
-  @[simp] def mapMWrapped {e1 e2 : Type} {m} [Monad m] (f : e1 → m e2) (w : Wrapped (Binder e1)) : m (Wrapped (Binder e2)) := do
+  @[simp] def mapMWrapped [Monad m] (f : e1 → m e2) (w : Wrapped (Binder e1)) : m (Wrapped (Binder e2)) := do
     let val ← mapM f w.value
     pure { w with value := val }
   termination_by sizeOf w
@@ -1146,18 +1146,18 @@ structure AndToken (α : Type) where
 
 namespace AndToken
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (a : AndToken α) : AndToken β :=
+@[always_inline, simp] def map (f : α → β) (a : AndToken α) : AndToken β :=
   { a with value := f a.value }
 
-@[simp] theorem id_map {α : Type} (a : AndToken α) : (a.map id) = a := rfl
+@[simp] theorem id_map (a : AndToken α) : (a.map id) = a := rfl
 
-@[simp] theorem comp_map {α β γ : Type} (f : α → β) (g : β → γ) (a : AndToken α) : (a.map (g ∘ f)) = (a.map f |>.map g) := rfl
+@[simp] theorem comp_map (f : α → β) (g : β → γ) (a : AndToken α) : (a.map (g ∘ f)) = (a.map f |>.map g) := rfl
 
-@[simp] theorem functor_map_id {α : Type} : map (id : α → α) = id := by funext e; exact id_map e
+@[simp] theorem functor_map_id : map (id : α → α) = id := by funext e; exact id_map e
 
-@[simp] theorem functor_map_comp {α β γ : Type} (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext e; exact comp_map f g e
+@[simp] theorem functor_map_comp (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext e; exact comp_map f g e
 
-@[always_inline, simp] def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (a : AndToken α) : m (AndToken β) := do
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (a : AndToken α) : m (AndToken β) := do
   let v ← f a.value
   pure { a with value := v }
 
@@ -1178,35 +1178,35 @@ inductive AppSpineF (e expr_e : Type)
 
 namespace AppSpineF
 
-@[always_inline, simp] def map_all {e1 e2 α β : Type} (f : e1 → e2) (f_expr : α → β) (s : AppSpineF e1 α) : AppSpineF e2 β :=
+@[always_inline, simp] def map_all (f : e1 → e2) (f_expr : α → β) (s : AppSpineF e1 α) : AppSpineF e2 β :=
   match s with
   | .Term e => .Term (f_expr e)
   | .Type_ t ty => .Type_ t (ty.map f)
 
-@[simp] theorem map_all_id {e α : Type} (s : AppSpineF e α) : s.map_all id id = s := by
+@[simp] theorem map_all_id (s : AppSpineF e α) : s.map_all id id = s := by
   match s with
   | .Term e => simp only [map_all, id_eq]
   | .Type_ t ty => simp only [map_all, Type_.map_id]
 
-@[simp] theorem map_all_comp {e1 e2 e3 α β γ : Type} (f : e1 → e2) (g : e2 → e3) (f_expr : α → β) (g_expr : β → γ) (s : AppSpineF e1 α) :
+@[simp] theorem map_all_comp (f : e1 → e2) (g : e2 → e3) (f_expr : α → β) (g_expr : β → γ) (s : AppSpineF e1 α) :
   s.map_all (g ∘ f) (g_expr ∘ f_expr) = (s.map_all f f_expr).map_all g g_expr := by
   match s with
   | .Term e => simp only [map_all, Function.comp_apply]
   | .Type_ t ty => simp only [map_all, Type_.map_comp]
 
-@[always_inline, simp] def map_expr_e {e α β : Type} (f : α → β) (s : AppSpineF e α) : AppSpineF e β :=
+@[always_inline, simp] def map_expr_e (f : α → β) (s : AppSpineF e α) : AppSpineF e β :=
   s.map_all id f
 
-@[always_inline, simp] def map_e {e1 e2 α : Type} (f : e1 → e2) (s : AppSpineF e1 α) : AppSpineF e2 α :=
+@[always_inline, simp] def map_e (f : e1 → e2) (s : AppSpineF e1 α) : AppSpineF e2 α :=
   s.map_all f id
 
-instance {e : Type} : Functor (AppSpineF e) where map := map_expr_e
-instance {e : Type} : LawfulFunctor (AppSpineF e) where
+instance : Functor (AppSpineF e) where map := map_expr_e
+instance : LawfulFunctor (AppSpineF e) where
   map_const := rfl
   id_map := map_all_id
   comp_map := map_all_comp id id
 
-@[always_inline, simp] def mapM_all {m : Type → Type} [Monad m] {e1 e2 α β : Type} (f : e1 → m e2) (f_expr : α → m β) (s : AppSpineF e1 α) : m (AppSpineF e2 β) :=
+@[always_inline, simp] def mapM_all [Monad m] (f : e1 → m e2) (f_expr : α → m β) (s : AppSpineF e1 α) : m (AppSpineF e2 β) :=
   match s with
   | .Term e => .Term <$> f_expr e
   | .Type_ t ty => .Type_ t <$> ty.mapM f
@@ -1220,15 +1220,15 @@ inductive RecordUpdateF (expr_e self : Type)
 
 -- namespace RecordUpdateF
 
--- @[simp] theorem sizeOf_Leaf {α : Type} [SizeOf α] (l t expr) :
+-- @[simp] theorem sizeOf_Leaf [SizeOf α] (l t expr) :
 --   sizeOf (RecordUpdateF.Leaf (expr_e := α) l t expr) = 1 + sizeOf l + sizeOf t + sizeOf expr :=
 --   RecordUpdateF.Leaf.sizeOf_spec l t expr
 
--- @[simp] theorem sizeOf_Branch {α : Type} [SizeOf α] (l updates) :
+-- @[simp] theorem sizeOf_Branch [SizeOf α] (l updates) :
 --   sizeOf (RecordUpdateF.Branch (expr_e := α) l updates) = 1 + sizeOf l + sizeOf updates :=
 --   RecordUpdateF.Branch.sizeOf_spec l updates
 
--- @[inline] def map_all {α β : Type} [SizeOf α] (f_expr : α → β) (u : RecordUpdateF α) : RecordUpdateF β :=
+-- @[inline] def map_all [SizeOf α] (f_expr : α → β) (u : RecordUpdateF α) : RecordUpdateF β :=
 --   match u with
 --   | .Leaf label token expr => .Leaf label token (f_expr expr)
 --   | .Branch label updates  => .Branch label (updates.attach.map (fun x => x.val.map_all f_expr))
@@ -1238,7 +1238,7 @@ inductive RecordUpdateF (expr_e self : Type)
 --   have := DelimitedNonEmpty.sizeOf_attach_elem updates x
 --   omega
 
--- @[simp] theorem map_all_id {α : Type} (u : RecordUpdateF α) : map_all id u = u := by
+-- @[simp] theorem map_all_id (u : RecordUpdateF α) : map_all id u = u := by
 --   match u with
 --   | .Leaf label token expr => simp only [map_all, id_eq]
 --   | .Branch label updates =>
@@ -1252,7 +1252,7 @@ inductive RecordUpdateF (expr_e self : Type)
 --   have := DelimitedNonEmpty.sizeOf_attach_elem updates x
 --   omega
 
--- @[simp] theorem map_all_comp {α β γ : Type} (f_expr : α → β) (g_expr : β → γ) (u : RecordUpdateF α) :
+-- @[simp] theorem map_all_comp (f_expr : α → β) (g_expr : β → γ) (u : RecordUpdateF α) :
 --   map_all (g_expr ∘ f_expr) u = map_all g_expr (map_all f_expr u) := by
 --   match u with
 --   | .Leaf label token expr => simp only [map_all, Function.comp_apply]
@@ -1270,16 +1270,16 @@ inductive RecordUpdateF (expr_e self : Type)
 --   have := DelimitedNonEmpty.sizeOf_attach_elem updates x
 --   omega
 
--- @[always_inline, inline] def map_expr_e {α β : Type} [SizeOf α] (f : α → β) (u : RecordUpdateF α) : RecordUpdateF β :=
+-- @[always_inline, inline] def map_expr_e [SizeOf α] (f : α → β) (u : RecordUpdateF α) : RecordUpdateF β :=
 --   u.map_all f
 
--- @[always_inline, inline] def map_e {e1 e2 α : Type} [SizeOf α] (_f : e1 → e2) (u : RecordUpdateF α) : RecordUpdateF α :=
+-- @[always_inline, inline] def map_e [SizeOf α] (_f : e1 → e2) (u : RecordUpdateF α) : RecordUpdateF α :=
 --   u
 
--- @[simp] theorem map_expr_e_id {α : Type} (u : RecordUpdateF α) : map_expr_e id u = u := map_all_id u
--- @[simp] theorem map_expr_e_comp {α β γ : Type} (f : α → β) (g : β → γ) (u : RecordUpdateF α) : map_expr_e (g ∘ f) u = map_expr_e g (map_expr_e f u) := map_all_comp f g u
--- @[simp] theorem map_e_id {e α : Type} (u : RecordUpdateF α) : map_e (id : e → e) u = u := rfl
--- @[simp] theorem map_e_comp {e1 e2 e3 α : Type} (f : e1 → e2) (g : e2 → e3) (u : RecordUpdateF α) : map_e (g ∘ f) u = map_e g (map_e f u) := rfl
+-- @[simp] theorem map_expr_e_id (u : RecordUpdateF α) : map_expr_e id u = u := map_all_id u
+-- @[simp] theorem map_expr_e_comp (f : α → β) (g : β → γ) (u : RecordUpdateF α) : map_expr_e (g ∘ f) u = map_expr_e g (map_expr_e f u) := map_all_comp f g u
+-- @[simp] theorem map_e_id (u : RecordUpdateF α) : map_e (id : e → e) u = u := rfl
+-- @[simp] theorem map_e_comp (f : e1 → e2) (g : e2 → e3) (u : RecordUpdateF α) : map_e (g ∘ f) u = map_e g (map_e f u) := rfl
 
 -- instance : Functor RecordUpdateF where map := map_expr_e
 -- instance : LawfulFunctor RecordUpdateF where
@@ -1297,18 +1297,18 @@ structure RecordAccessorF (expr_e : Type) where
 
 namespace RecordAccessorF
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (a : RecordAccessorF α) : RecordAccessorF β :=
+@[always_inline, simp] def map (f : α → β) (a : RecordAccessorF α) : RecordAccessorF β :=
   { a with expr := f a.expr }
 
-@[simp] theorem id_map {α : Type} (a : RecordAccessorF α) : (a.map id) = a := by
+@[simp] theorem id_map (a : RecordAccessorF α) : (a.map id) = a := by
   cases a; aesop
 
-@[simp] theorem comp_map {α β γ : Type} (f : α → β) (g : β → γ) (a : RecordAccessorF α) : (a.map (g ∘ f)) = (a.map f |>.map g) := by
+@[simp] theorem comp_map (f : α → β) (g : β → γ) (a : RecordAccessorF α) : (a.map (g ∘ f)) = (a.map f |>.map g) := by
   cases a; aesop
 
-@[simp] theorem map_id_fun {α : Type} : map (id : α → α) = id := by funext a; exact id_map a
+@[simp] theorem map_id_fun : map (id : α → α) = id := by funext a; exact id_map a
 
-@[simp] theorem map_comp_fun {α β γ : Type} (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext a; exact comp_map f g a
+@[simp] theorem map_comp_fun (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext a; exact comp_map f g a
 
 instance : Functor RecordAccessorF where map := map
 instance : LawfulFunctor RecordAccessorF where
@@ -1316,7 +1316,7 @@ instance : LawfulFunctor RecordAccessorF where
   id_map := id_map
   comp_map := comp_map
 
-@[always_inline, simp] def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (a : RecordAccessorF α) : m (RecordAccessorF β) := do
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (a : RecordAccessorF α) : m (RecordAccessorF β) := do
   let e ← f a.expr
   pure { a with expr := e }
 
@@ -1331,28 +1331,28 @@ structure LambdaF (e expr_e : Type) where
 
 namespace LambdaF
 
-@[always_inline, simp] def map_all {e1 e2 α β : Type} (f : e1 → e2) (f_expr : α → β) (l : LambdaF e1 α) : LambdaF e2 β :=
+@[always_inline, simp] def map_all (f : e1 → e2) (f_expr : α → β) (l : LambdaF e1 α) : LambdaF e2 β :=
   { symbol := l.symbol
     binders := l.binders.map (fun b => b.map f)
     arrow := l.arrow
     body := f_expr l.body
   }
 
-@[simp] theorem map_all_id {e α : Type} (l : LambdaF e α) : l.map_all id id = l := by
+@[simp] theorem map_all_id (l : LambdaF e α) : l.map_all id id = l := by
   cases l; simp only [map_all, NonEmptyArray.map, Binder.map_id, Array.map_id_fun', id_eq]
 
-@[simp] theorem map_all_comp {e1 e2 e3 α β γ : Type} (f : e1 → e2) (g : e2 → e3) (f_expr : α → β) (g_expr : β → γ) (l : LambdaF e1 α) :
+@[simp] theorem map_all_comp (f : e1 → e2) (g : e2 → e3) (f_expr : α → β) (g_expr : β → γ) (l : LambdaF e1 α) :
   l.map_all (g ∘ f) (g_expr ∘ f_expr) = (l.map_all f f_expr).map_all g g_expr := by
   cases l; simp only [map_all, NonEmptyArray.map, Binder.map_comp, Function.comp_apply,
     Array.map_map, mk.injEq, NonEmptyArray.mk.injEq, Array.map_inj_left, implies_true, and_self]
 
-@[always_inline, simp] def map_expr_e {e α β : Type} (f : α → β) (l : LambdaF e α) : LambdaF e β :=
+@[always_inline, simp] def map_expr_e (f : α → β) (l : LambdaF e α) : LambdaF e β :=
   l.map_all id f
 
-@[always_inline, simp] def map_e {e1 e2 α : Type} (f : e1 → e2) (l : LambdaF e1 α) : LambdaF e2 α :=
+@[always_inline, simp] def map_e (f : e1 → e2) (l : LambdaF e1 α) : LambdaF e2 α :=
   l.map_all f id
 
-@[always_inline, simp] def mapM_all {m : Type → Type} [Monad m] {e1 e2 α β : Type} (f : e1 → m e2) (f_expr : α → m β) (l : LambdaF e1 α) : m (LambdaF e2 β) := do
+@[always_inline, simp] def mapM_all [Monad m] (f : e1 → m e2) (f_expr : α → m β) (l : LambdaF e1 α) : m (LambdaF e2 β) := do
   let binders ← l.binders.mapM (fun b => b.mapM f)
   let body ← f_expr l.body
   pure { symbol := l.symbol, binders := binders, arrow := l.arrow, body := body }
@@ -1370,18 +1370,18 @@ structure IfThenElseF (expr_e : Type) where
 
 namespace IfThenElseF
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (i : IfThenElseF α) : IfThenElseF β :=
+@[always_inline, simp] def map (f : α → β) (i : IfThenElseF α) : IfThenElseF β :=
   { i with cond := f i.cond, true_ := f i.true_, false_ := f i.false_ }
 
-@[simp] theorem id_map {α : Type} (i : IfThenElseF α) : (i.map id) = i := by
+@[simp] theorem id_map (i : IfThenElseF α) : (i.map id) = i := by
   cases i; aesop
 
-@[simp] theorem comp_map {α β γ : Type} (f : α → β) (g : β → γ) (i : IfThenElseF α) : (i.map (g ∘ f)) = (i.map f |>.map g) := by
+@[simp] theorem comp_map (f : α → β) (g : β → γ) (i : IfThenElseF α) : (i.map (g ∘ f)) = (i.map f |>.map g) := by
   cases i; aesop
 
-@[simp] theorem map_id_fun {α : Type} : map (id : α → α) = id := by funext i; exact id_map i
+@[simp] theorem map_id_fun : map (id : α → α) = id := by funext i; exact id_map i
 
-@[simp] theorem map_comp_fun {α β γ : Type} (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext i; exact comp_map f g i
+@[simp] theorem map_comp_fun (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext i; exact comp_map f g i
 
 instance : Functor IfThenElseF where map := map
 instance : LawfulFunctor IfThenElseF where
@@ -1389,7 +1389,7 @@ instance : LawfulFunctor IfThenElseF where
   id_map := id_map
   comp_map := comp_map
 
-@[always_inline, simp] def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (i : IfThenElseF α) : m (IfThenElseF β) := do
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (i : IfThenElseF α) : m (IfThenElseF β) := do
   let cond ← f i.cond
   let true_ ← f i.true_
   let false_ ← f i.false_
@@ -1404,35 +1404,35 @@ structure PatternGuardF (e expr_e : Type) where
 
 namespace PatternGuardF
 
-@[always_inline, simp] def map_all {e1 e2 α β : Type} (f : e1 → e2) (f_expr : α → β) (p : PatternGuardF e1 α) : PatternGuardF e2 β :=
+@[always_inline, simp] def map_all (f : e1 → e2) (f_expr : α → β) (p : PatternGuardF e1 α) : PatternGuardF e2 β :=
   { binder := p.binder.map (fun (b, t) => (b.map f, t))
     expr := f_expr p.expr
   }
 
-@[simp] theorem map_all_id {e α : Type} (p : PatternGuardF e α) : p.map_all id id = p := by
+@[simp] theorem map_all_id (p : PatternGuardF e α) : p.map_all id id = p := by
   match p with
   | { binder, expr } => simp only [map_all, Binder.map_id, Option.map_id_fun', id_eq]
 
-@[simp] theorem map_all_comp {e1 e2 e3 α β γ : Type} (f : e1 → e2) (g : e2 → e3) (f_expr : α → β) (g_expr : β → γ) (p : PatternGuardF e1 α) :
+@[simp] theorem map_all_comp (f : e1 → e2) (g : e2 → e3) (f_expr : α → β) (g_expr : β → γ) (p : PatternGuardF e1 α) :
   p.map_all (g ∘ f) (g_expr ∘ f_expr) = (p.map_all f f_expr).map_all g g_expr := by
   match p with
   | { binder, expr } =>
     simp only [map_all, Binder.map_comp, Function.comp_apply, Option.map_map, mk.injEq, and_true]
     apply congrArg (Option.map · binder); funext x; simp only [Function.comp_apply]
 
-@[always_inline, simp] def map_expr_e {e α β : Type} (f : α → β) (p : PatternGuardF e α) : PatternGuardF e β :=
+@[always_inline, simp] def map_expr_e (f : α → β) (p : PatternGuardF e α) : PatternGuardF e β :=
   p.map_all id f
 
-@[always_inline, simp] def map_e {e1 e2 α : Type} (f : e1 → e2) (p : PatternGuardF e1 α) : PatternGuardF e2 α :=
+@[always_inline, simp] def map_e (f : e1 → e2) (p : PatternGuardF e1 α) : PatternGuardF e2 α :=
   p.map_all f id
 
-instance {e : Type} : Functor (PatternGuardF e) where map := map_expr_e
+instance : Functor (PatternGuardF e) where map := map_expr_e
 instance : LawfulFunctor (PatternGuardF e) where
   map_const := rfl
   id_map := map_all_id
   comp_map f g x := map_all_comp id id f g x
 
-@[always_inline, simp] def mapM_all {m : Type → Type} [Monad m] {e1 e2 α β : Type} (f : e1 → m e2) (f_expr : α → m β) (p : PatternGuardF e1 α) : m (PatternGuardF e2 β) := do
+@[always_inline, simp] def mapM_all [Monad m] (f : e1 → m e2) (f_expr : α → m β) (p : PatternGuardF e1 α) : m (PatternGuardF e2 β) := do
   let binder ← p.binder.mapM (fun (b, t) => do pure (← b.mapM f, t))
   let expr ← f_expr p.expr
   pure { binder := binder, expr := expr }
@@ -1472,7 +1472,7 @@ structure GuardedExprF (patternGuard_e where_e : Type) where
 
 namespace GuardedExprF
 
-@[always_inline, simp] def map_all {patternGuard_e patternGuard_e' where_e where_e' : Type}
+@[always_inline, simp] def map_all
   (f_patternGuard : patternGuard_e → patternGuard_e') (f_where : where_e → where_e')
   (g : GuardedExprF patternGuard_e where_e) : GuardedExprF patternGuard_e' where_e' :=
   { bar := g.bar
@@ -1481,11 +1481,11 @@ namespace GuardedExprF
     where_ := f_where g.where_
   }
 
-@[simp] theorem map_all_id {patternGuard_e where_e : Type} (g : GuardedExprF patternGuard_e where_e) : g.map_all id id = g := by
+@[simp] theorem map_all_id (g : GuardedExprF patternGuard_e where_e) : g.map_all id id = g := by
   match g with
   | { bar, patterns, separator, where_ } => simp only [map_all, Separated.map_id_fun, id_eq]
 
-@[simp] theorem map_all_comp {patternGuard_e1 patternGuard_e2 patternGuard_e3 where_e1 where_e2 where_e3 : Type}
+@[simp] theorem map_all_comp
   (f_patternGuard : patternGuard_e1 → patternGuard_e2) (g_patternGuard : patternGuard_e2 → patternGuard_e3)
   (f_where : where_e1 → where_e2) (g_where : where_e2 → where_e3)
   (ge : GuardedExprF patternGuard_e1 where_e1) :
@@ -1494,7 +1494,7 @@ namespace GuardedExprF
   | { bar, patterns, separator, where_ } =>
     simp only [map_all, Separated.map_comp_fun, Function.comp_apply]
 
-@[always_inline, simp] def mapM_all {m : Type → Type} [Monad m] {patternGuard_e patternGuard_e' where_e where_e' : Type}
+@[always_inline, simp] def mapM_all [Monad m]
   (f_patternGuard : patternGuard_e → m patternGuard_e') (f_where : where_e → m where_e')
   (g : GuardedExprF patternGuard_e where_e) : m (GuardedExprF patternGuard_e' where_e') := do
   let patterns ← g.patterns.mapM f_patternGuard
@@ -1511,19 +1511,19 @@ inductive GuardedF (where_e guardedExpr_e : Type) where
 
 namespace GuardedF
 
-@[always_inline, simp] def map_all {where_e where_e' guardedExpr_e guardedExpr_e' : Type}
+@[always_inline, simp] def map_all
   (f_where : where_e → where_e') (f_guardedExpr : guardedExpr_e → guardedExpr_e')
   (g : GuardedF where_e guardedExpr_e) : GuardedF where_e' guardedExpr_e' :=
   match g with
   | Unconditional t w => Unconditional t (f_where w)
   | Guarded b => Guarded (b.map f_guardedExpr)
 
-@[simp] theorem map_all_id {where_e guardedExpr_e : Type} (g : GuardedF where_e guardedExpr_e) : g.map_all id id = g := by
+@[simp] theorem map_all_id (g : GuardedF where_e guardedExpr_e) : g.map_all id id = g := by
   match g with
   | Unconditional t w => simp only [map_all, id_eq]
   | Guarded b => simp only [map_all, NonEmptyArray.map, id_eq, Array.map_id_fun]
 
-@[simp] theorem map_all_comp {where_e1 where_e2 where_e3 guardedExpr_e1 guardedExpr_e2 guardedExpr_e3 : Type}
+@[simp] theorem map_all_comp
   (f_where : where_e1 → where_e2) (g_where : where_e2 → where_e3)
   (f_guardedExpr : guardedExpr_e1 → guardedExpr_e2) (g_guardedExpr : guardedExpr_e2 → guardedExpr_e3)
   (gr : GuardedF where_e1 guardedExpr_e1) :
@@ -1532,7 +1532,7 @@ namespace GuardedF
   | Unconditional t w => simp only [map_all, Function.comp_apply]
   | Guarded b => simp only [map_all, NonEmptyArray.map, Function.comp_apply, Array.map_map]
 
-@[always_inline, simp] def mapM_all {m : Type → Type} [Monad m] {where_e where_e' guardedExpr_e guardedExpr_e' : Type}
+@[always_inline, simp] def mapM_all [Monad m]
   (f_where : where_e → m where_e') (f_guardedExpr : guardedExpr_e → m guardedExpr_e')
   (g : GuardedF where_e guardedExpr_e) : m (GuardedF where_e' guardedExpr_e') :=
   match g with
@@ -1550,7 +1550,7 @@ structure ValueBindingFieldsF (e guardedExpr_e : Type) where
 
 namespace ValueBindingFieldsF
 
-@[always_inline, simp] def map_all {e e' guardedExpr_e guardedExpr_e' : Type}
+@[always_inline, simp] def map_all
   (f : e → e') (f_guardedExpr : guardedExpr_e → guardedExpr_e')
   (v : ValueBindingFieldsF e guardedExpr_e) : ValueBindingFieldsF e' guardedExpr_e' :=
   { name := v.name
@@ -1558,11 +1558,11 @@ namespace ValueBindingFieldsF
     guarded := f_guardedExpr v.guarded
   }
 
-@[simp] theorem map_all_id {e guardedExpr_e : Type} (v : ValueBindingFieldsF e guardedExpr_e) : v.map_all id id = v := by
+@[simp] theorem map_all_id (v : ValueBindingFieldsF e guardedExpr_e) : v.map_all id id = v := by
   match v with
   | { name, binders, guarded } => simp only [map_all, Binder.map_id, Array.map_id_fun', id_eq]
 
-@[simp] theorem map_all_comp {e1 e2 e3 guardedExpr_e1 guardedExpr_e2 guardedExpr_e3 : Type}
+@[simp] theorem map_all_comp
   (f : e1 → e2) (g : e2 → e3) (f_guardedExpr : guardedExpr_e1 → guardedExpr_e2) (g_guardedExpr : guardedExpr_e2 → guardedExpr_e3)
   (v : ValueBindingFieldsF e1 guardedExpr_e1) :
   v.map_all (g ∘ f) (g_guardedExpr ∘ f_guardedExpr) = (v.map_all f f_guardedExpr).map_all g g_guardedExpr := by
@@ -1570,7 +1570,7 @@ namespace ValueBindingFieldsF
   | { name, binders, guarded } => simp only [map_all, Binder.map_comp, Function.comp_apply,
     Array.map_map, mk.injEq, Array.map_inj_left, implies_true, and_self]
 
-@[always_inline, simp] def mapM_all {m : Type → Type} [Monad m] {e e' guardedExpr_e guardedExpr_e' : Type}
+@[always_inline, simp] def mapM_all [Monad m]
   (f : e → m e') (f_guardedExpr : guardedExpr_e → m guardedExpr_e')
   (v : ValueBindingFieldsF e guardedExpr_e) : m (ValueBindingFieldsF e' guardedExpr_e') := do
   let binders ← v.binders.mapM (fun b => b.mapM f)
@@ -1586,19 +1586,19 @@ structure WhereF (expr_e letBinding_e : Type) where
 
 namespace WhereF
 
-@[always_inline, simp] def map_all {expr_e expr_e' letBinding_e letBinding_e' : Type}
+@[always_inline, simp] def map_all
   (f_expr : expr_e → expr_e') (f_letBinding : letBinding_e → letBinding_e')
   (w : WhereF expr_e letBinding_e) : WhereF expr_e' letBinding_e' :=
   { expr := f_expr w.expr
     bindings := w.bindings.map (fun (t, b) => (t, b.map f_letBinding))
   }
 
-@[simp] theorem map_all_id {expr_e letBinding_e : Type} (w : WhereF expr_e letBinding_e) : w.map_all id id = w := by
+@[simp] theorem map_all_id (w : WhereF expr_e letBinding_e) : w.map_all id id = w := by
   match w with
   | { expr, bindings } => simp only [map_all, id_eq, NonEmptyArray.map, Array.map_id_fun,
     Option.map_id_fun']
 
-@[simp] theorem map_all_comp {expr_e1 expr_e2 expr_e3 letBinding_e1 letBinding_e2 letBinding_e3 : Type}
+@[simp] theorem map_all_comp
   (f_expr : expr_e1 → expr_e2) (g_expr : expr_e2 → expr_e3)
   (f_letBinding : letBinding_e1 → letBinding_e2) (g_letBinding : letBinding_e2 → letBinding_e3)
   (w : WhereF expr_e1 letBinding_e1) :
@@ -1609,7 +1609,7 @@ namespace WhereF
     ext a : 1
     simp_all only [Option.map_eq_some_iff, Prod.exists, Function.comp_apply, Array.map_map]
 
-@[always_inline, simp] def mapM_all {m : Type → Type} [Monad m] {expr_e expr_e' letBinding_e letBinding_e' : Type}
+@[always_inline, simp] def mapM_all [Monad m]
   (f_expr : expr_e → m expr_e') (f_letBinding : letBinding_e → m letBinding_e')
   (w : WhereF expr_e letBinding_e) : m (WhereF expr_e' letBinding_e') := do
   let expr ← f_expr w.expr
@@ -1628,7 +1628,7 @@ inductive LetBindingF (e valueBindingFields_e where_e : Type) where
 
 namespace LetBindingF
 
-@[always_inline, simp] def map_all {e e' valueBindingFields_e valueBindingFields_e' where_e where_e' : Type}
+@[always_inline, simp] def map_all
   (f : e → e') (f_valueBindingFields : valueBindingFields_e → valueBindingFields_e') (f_where : where_e → where_e')
   (b : LetBindingF e valueBindingFields_e where_e) : LetBindingF e' valueBindingFields_e' where_e' :=
   match b with
@@ -1637,7 +1637,7 @@ namespace LetBindingF
   | Pattern b' t w => Pattern (b'.map f) t (f_where w)
   | Error d => Error (f d)
 
-@[simp] theorem map_all_id {e valueBindingFields_e where_e : Type} (b : LetBindingF e valueBindingFields_e where_e) : b.map_all id id id = b := by
+@[simp] theorem map_all_id (b : LetBindingF e valueBindingFields_e where_e) : b.map_all id id id = b := by
   match b with
   | Signature l =>
     simp_all only [map_all, Signature.injEq]
@@ -1647,7 +1647,7 @@ namespace LetBindingF
   | Pattern b' t w => simp only [map_all, Binder.map_id, id_eq]
   | Error d => simp only [map_all, id_eq]
 
-@[simp] theorem map_all_comp {e1 e2 e3 valueBindingFields_e1 valueBindingFields_e2 valueBindingFields_e3 where_e1 where_e2 where_e3 : Type}
+@[simp] theorem map_all_comp
   (f : e1 → e2) (g : e2 → e3)
   (f_valueBindingFields : valueBindingFields_e1 → valueBindingFields_e2) (g_valueBindingFields : valueBindingFields_e2 → valueBindingFields_e3)
   (f_where : where_e1 → where_e2) (g_where : where_e2 → where_e3)
@@ -1659,7 +1659,7 @@ namespace LetBindingF
   | Pattern b' t w => simp only [map_all, Binder.map_comp, Function.comp_apply]
   | Error d => simp only [map_all, Function.comp_apply]
 
-@[always_inline, simp] def mapM_all {m : Type → Type} [Monad m] {e e' valueBindingFields_e valueBindingFields_e' where_e where_e' : Type}
+@[always_inline, simp] def mapM_all [Monad m]
   (f : e → m e') (f_valueBindingFields : valueBindingFields_e → m valueBindingFields_e') (f_where : where_e → m where_e')
   (b : LetBindingF e valueBindingFields_e where_e) : m (LetBindingF e' valueBindingFields_e' where_e') :=
   match b with
@@ -1679,7 +1679,7 @@ structure CaseOfF (e expr_e guardedRecursive_e : Type) where
 
 namespace CaseOfF
 
-@[always_inline, simp] def map_all {e e' expr_e expr_e' guardedRecursive_e guardedRecursive_e' : Type}
+@[always_inline, simp] def map_all
   (f : e → e') (f_expr : expr_e → expr_e') (f_guardedRecursive : guardedRecursive_e → guardedRecursive_e')
   (c : CaseOfF e expr_e guardedRecursive_e) : CaseOfF e' expr_e' guardedRecursive_e' :=
   { keyword := c.keyword
@@ -1688,12 +1688,12 @@ namespace CaseOfF
     branches := c.branches.map (fun (b, g) => (b.map (fun b' => b'.map f), f_guardedRecursive g))
   }
 
-@[simp] theorem map_all_id {e expr_e guardedRecursive_e : Type} (c : CaseOfF e expr_e guardedRecursive_e) : c.map_all id id id = c := by
+@[simp] theorem map_all_id (c : CaseOfF e expr_e guardedRecursive_e) : c.map_all id id id = c := by
   match c with
   | { keyword, head, of, branches } => simp only [map_all, Separated.map, id_eq, Array.map_id_fun',
     NonEmptyArray.map, Binder.map_id]
 
-@[simp] theorem map_all_comp {e1 e2 e3 expr_e1 expr_e2 expr_e3 guardedRecursive_e1 guardedRecursive_e2 guardedRecursive_e3 : Type}
+@[simp] theorem map_all_comp
   (f : e1 → e2) (g : e2 → e3) (f_expr : expr_e1 → expr_e2) (g_expr : expr_e2 → expr_e3)
   (f_guardedRecursive : guardedRecursive_e1 → guardedRecursive_e2) (g_guardedRecursive : guardedRecursive_e2 → guardedRecursive_e3)
   (c : CaseOfF e1 expr_e1 guardedRecursive_e1) :
@@ -1703,7 +1703,7 @@ namespace CaseOfF
     NonEmptyArray.map, Binder.map_comp, Array.map_map, mk.injEq, Separated.mk.injEq,
     Array.map_inj_left, implies_true, and_self, NonEmptyArray.mk.injEq, Prod.mk.injEq]
 
-@[always_inline, simp] def mapM_all {m : Type → Type} [Monad m] {e e' expr_e expr_e' guardedRecursive_e guardedRecursive_e' : Type}
+@[always_inline, simp] def mapM_all [Monad m]
   (f : e → m e') (f_expr : expr_e → m expr_e') (f_guardedRecursive : guardedRecursive_e → m guardedRecursive_e')
   (c : CaseOfF e expr_e guardedRecursive_e) : m (CaseOfF e' expr_e' guardedRecursive_e') := do
   let head ← c.head.mapM f_expr
@@ -1720,7 +1720,7 @@ structure LetInF (expr_e letBindingRecursive_e : Type) where
 
 namespace LetInF
 
-@[always_inline, simp] def map_all {expr_e expr_e' letBindingRecursive_e letBindingRecursive_e' : Type}
+@[always_inline, simp] def map_all
   (f_expr : expr_e → expr_e') (f_letBindingRecursive : letBindingRecursive_e → letBindingRecursive_e')
   (l : LetInF expr_e letBindingRecursive_e) : LetInF expr_e' letBindingRecursive_e' :=
   { keyword := l.keyword
@@ -1729,12 +1729,12 @@ namespace LetInF
     body := f_expr l.body
   }
 
-@[simp] theorem map_all_id {expr_e letBindingRecursive_e : Type} (l : LetInF expr_e letBindingRecursive_e) : l.map_all id id = l := by
+@[simp] theorem map_all_id (l : LetInF expr_e letBindingRecursive_e) : l.map_all id id = l := by
   match l with
   | { keyword, bindings, in_, body } => simp only [map_all, NonEmptyArray.map, id_eq,
     Array.map_id_fun]
 
-@[simp] theorem map_all_comp {expr_e1 expr_e2 expr_e3 letBindingRecursive_e1 letBindingRecursive_e2 letBindingRecursive_e3 : Type}
+@[simp] theorem map_all_comp
   (f_expr : expr_e1 → expr_e2) (g_expr : expr_e2 → expr_e3)
   (f_letBindingRecursive : letBindingRecursive_e1 → letBindingRecursive_e2) (g_letBindingRecursive : letBindingRecursive_e2 → letBindingRecursive_e3)
   (l : LetInF expr_e1 letBindingRecursive_e1) :
@@ -1743,7 +1743,7 @@ namespace LetInF
   | { keyword, bindings, in_, body } => simp only [map_all, NonEmptyArray.map, Function.comp_apply,
     Array.map_map]
 
-@[always_inline, simp] def mapM_all {m : Type → Type} [Monad m] {expr_e expr_e' letBindingRecursive_e letBindingRecursive_e' : Type}
+@[always_inline, simp] def mapM_all [Monad m]
   (f_expr : expr_e → m expr_e') (f_letBindingRecursive : letBindingRecursive_e → m letBindingRecursive_e')
   (l : LetInF expr_e letBindingRecursive_e) : m (LetInF expr_e' letBindingRecursive_e') := do
   let bindings ← l.bindings.mapM f_letBindingRecursive
@@ -1761,7 +1761,7 @@ inductive DoStatementF (e expr_e letBindingRecursive_e : Type)
 
 namespace DoStatementF
 
-@[always_inline, simp] def map_all {e e' expr_e expr_e' letBindingRecursive_e letBindingRecursive_e' : Type}
+@[always_inline, simp] def map_all
   (f : e → e') (f_expr : expr_e → expr_e') (f_letBindingRecursive : letBindingRecursive_e → letBindingRecursive_e')
   (s : DoStatementF e expr_e letBindingRecursive_e) : DoStatementF e' expr_e' letBindingRecursive_e' :=
   match s with
@@ -1770,14 +1770,14 @@ namespace DoStatementF
   | Bind b t expr => Bind (b.map f) t (f_expr expr)
   | Error d => Error (f d)
 
-@[simp] theorem map_all_id {e expr_e letBindingRecursive_e : Type} (s : DoStatementF e expr_e letBindingRecursive_e) : s.map_all id id id = s := by
+@[simp] theorem map_all_id (s : DoStatementF e expr_e letBindingRecursive_e) : s.map_all id id id = s := by
   match s with
   | Let t b => simp only [map_all, NonEmptyArray.map, id_eq, Array.map_id_fun]
   | Discard expr => simp only [map_all, id_eq]
   | Bind b' t expr => simp only [map_all, Binder.map_id, id_eq]
   | Error d => simp only [map_all, id_eq]
 
-@[simp] theorem map_all_comp {e1 e2 e3 expr_e1 expr_e2 expr_e3 letBindingRecursive_e1 letBindingRecursive_e2 letBindingRecursive_e3 : Type}
+@[simp] theorem map_all_comp
   (f : e1 → e2) (g : e2 → e3) (f_expr : expr_e1 → expr_e2) (g_expr : expr_e2 → expr_e3)
   (f_letBindingRecursive : letBindingRecursive_e1 → letBindingRecursive_e2) (g_letBindingRecursive : letBindingRecursive_e2 → letBindingRecursive_e3)
   (s : DoStatementF e1 expr_e1 letBindingRecursive_e1) :
@@ -1788,7 +1788,7 @@ namespace DoStatementF
   | Bind b' t expr => simp only [map_all, Binder.map_comp, Function.comp_apply]
   | Error d => simp only [map_all, Function.comp_apply]
 
-@[always_inline, simp] def mapM_all {m : Type → Type} [Monad m] {e e' expr_e expr_e' letBindingRecursive_e letBindingRecursive_e' : Type}
+@[always_inline, simp] def mapM_all [Monad m]
   (f : e → m e') (f_expr : expr_e → m expr_e') (f_letBindingRecursive : letBindingRecursive_e → m letBindingRecursive_e')
   (s : DoStatementF e expr_e letBindingRecursive_e) : m (DoStatementF e' expr_e' letBindingRecursive_e') :=
   match s with
@@ -1805,18 +1805,18 @@ structure DoBlockF (doStatement_e : Type) where
 
 namespace DoBlockF
 
-@[always_inline, simp] def map_all {doStatement_e doStatement_e' : Type}
+@[always_inline, simp] def map_all
   (f_doStatement : doStatement_e → doStatement_e')
   (b : DoBlockF doStatement_e) : DoBlockF doStatement_e' :=
   { keyword := b.keyword
     statements := b.statements.map f_doStatement
   }
 
-@[simp] theorem map_all_id {doStatement_e : Type} (b : DoBlockF doStatement_e) : b.map_all id = b := by
+@[simp] theorem map_all_id (b : DoBlockF doStatement_e) : b.map_all id = b := by
   match b with
   | { keyword, statements } => simp only [map_all, NonEmptyArray.map, id_eq, Array.map_id_fun]
 
-@[simp] theorem map_all_comp {doStatement_e1 doStatement_e2 doStatement_e3 : Type}
+@[simp] theorem map_all_comp
   (f_doStatement : doStatement_e1 → doStatement_e2) (g_doStatement : doStatement_e2 → doStatement_e3)
   (b : DoBlockF doStatement_e1) :
   b.map_all (g_doStatement ∘ f_doStatement) = (b.map_all f_doStatement).map_all g_doStatement := by
@@ -1824,7 +1824,7 @@ namespace DoBlockF
   | { keyword, statements } => simp only [map_all, NonEmptyArray.map, Function.comp_apply,
     Array.map_map]
 
-@[always_inline, simp] def mapM_all {m : Type → Type} [Monad m] {doStatement_e doStatement_e' : Type}
+@[always_inline, simp] def mapM_all [Monad m]
   (f_doStatement : doStatement_e → m doStatement_e')
   (b : DoBlockF doStatement_e) : m (DoBlockF doStatement_e') := do
   let statements ← b.statements.mapM f_doStatement
@@ -1840,7 +1840,7 @@ structure AdoBlockF (expr_e doStatement_e : Type) where
 
 namespace AdoBlockF
 
-@[always_inline, simp] def map_all {expr_e expr_e' doStatement_e doStatement_e' : Type}
+@[always_inline, simp] def map_all
   (f_expr : expr_e → expr_e') (f_doStatement : doStatement_e → doStatement_e')
   (b : AdoBlockF expr_e doStatement_e) : AdoBlockF expr_e' doStatement_e' :=
   { keyword := b.keyword
@@ -1849,11 +1849,11 @@ namespace AdoBlockF
     result := f_expr b.result
   }
 
-@[simp] theorem map_all_id {expr_e doStatement_e : Type} (b : AdoBlockF expr_e doStatement_e) : b.map_all id id = b := by
+@[simp] theorem map_all_id (b : AdoBlockF expr_e doStatement_e) : b.map_all id id = b := by
   match b with
   | { keyword, statements, in_, result } => simp only [map_all, Array.map_id_fun, id_eq]
 
-@[simp] theorem map_all_comp {expr_e1 expr_e2 expr_e3 doStatement_e1 doStatement_e2 doStatement_e3 : Type}
+@[simp] theorem map_all_comp
   (f_expr : expr_e1 → expr_e2) (g_expr : expr_e2 → expr_e3)
   (f_doStatement : doStatement_e1 → doStatement_e2) (g_doStatement : doStatement_e2 → doStatement_e3)
   (b : AdoBlockF expr_e1 doStatement_e1) :
@@ -1861,7 +1861,7 @@ namespace AdoBlockF
   match b with
   | { keyword, statements, in_, result } => simp only [map_all, Function.comp_apply, Array.map_map]
 
-@[always_inline, simp] def mapM_all {m : Type → Type} [Monad m] {expr_e expr_e' doStatement_e doStatement_e' : Type}
+@[always_inline, simp] def mapM_all [Monad m]
   (f_expr : expr_e → m expr_e') (f_doStatement : doStatement_e → m doStatement_e')
   (b : AdoBlockF expr_e doStatement_e) : m (AdoBlockF expr_e' doStatement_e') := do
   let statements ← b.statements.mapM f_doStatement
@@ -1946,7 +1946,7 @@ set_option linter.unusedVariables false in
   | Ado data => Ado (f_adoBlock data)
   | Error d => Error (f d)
 
-@[simp] theorem map_all_id {e expr_e doBlock adoBlock guardedRecursive_e letBindingRecursive_e recordAccessor_e recordUpdate_e appSpine_e lambda_e ifThenElse_e caseOf_e letIn_e : Type}
+@[simp] theorem map_all_id
   (expr : ExprF e expr_e doBlock adoBlock guardedRecursive_e letBindingRecursive_e recordAccessor_e recordUpdate_e appSpine_e lambda_e ifThenElse_e caseOf_e letIn_e) :
   expr.map_all id id id id id id id id id id id id id = expr := by
   match expr with
@@ -1983,7 +1983,7 @@ set_option linter.unusedVariables false in
   | Ado data => simp only [map_all, id_eq]
   | Error d => simp only [map_all, id_eq]
 
-@[simp] theorem map_all_comp {e1 e2 e3 expr_e1 expr_e2 expr_e3 doBlock1 doBlock2 doBlock3 adoBlock1 adoBlock2 adoBlock3 guardedRecursive_e1 guardedRecursive_e2 guardedRecursive_e3 letBindingRecursive_e1 letBindingRecursive_e2 letBindingRecursive_e3 recordAccessor_e1 recordAccessor_e2 recordAccessor_e3 recordUpdate_e1 recordUpdate_e2 recordUpdate_e3 appSpine_e1 appSpine_e2 appSpine_e3 lambda_e1 lambda_e2 lambda_e3 ifThenElse_e1 ifThenElse_e2 ifThenElse_e3 caseOf_e1 caseOf_e2 caseOf_e3 letIn_e1 letIn_e2 letIn_e3 : Type}
+@[simp] theorem map_all_comp
   (f : e1 → e2) (g : e2 → e3) (f_expr : expr_e1 → expr_e2) (g_expr : expr_e2 → expr_e3)
   (f_doBlock : doBlock1 → doBlock2) (g_doBlock : doBlock2 → doBlock3)
   (f_adoBlock : adoBlock1 → adoBlock2) (g_adoBlock : adoBlock2 → adoBlock3)
@@ -2098,7 +2098,7 @@ set_option linter.unusedVariables false in
   | Ado data => simp only [map_all, Function.comp_apply]
   | Error d => simp only [map_all, Function.comp_apply]
 
-@[always_inline, simp] def mapM_all {m : Type → Type} [Monad m]
+@[always_inline, simp] def mapM_all [Monad m]
   (f : e → m e')
   (f_expr : expr_e → m expr_e')
   (f_doBlock : doBlock → m doBlock')
@@ -2150,21 +2150,21 @@ inductive Foreign (e : Type)
 
 namespace Foreign
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (o : Foreign α) : Foreign β :=
+@[always_inline, simp] def map (f : α → β) (o : Foreign α) : Foreign β :=
   match o with
   | .Value l => .Value (Functor.map (Functor.map f) l)
   | .Data k l => .Data k (Functor.map (Functor.map f) l)
   | .Kind k n => .Kind k n
 
-@[simp] theorem id_map {α : Type} (o : Foreign α) : (o.map id) = o := by
+@[simp] theorem id_map (o : Foreign α) : (o.map id) = o := by
   cases o <;> aesop
 
-@[simp] theorem comp_map {α β γ : Type} (f : α → β) (g : β → γ) (o : Foreign α) : (o.map (g ∘ f)) = (o.map f |>.map g) := by
+@[simp] theorem comp_map (f : α → β) (g : β → γ) (o : Foreign α) : (o.map (g ∘ f)) = (o.map f |>.map g) := by
   cases o <;> aesop
 
-@[simp] theorem map_id_fun {α : Type} : map (id : α → α) = id := by funext o; exact id_map o
+@[simp] theorem map_id_fun : map (id : α → α) = id := by funext o; exact id_map o
 
-@[simp] theorem map_comp_fun {α β γ : Type} (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext o; exact comp_map f g o
+@[simp] theorem map_comp_fun (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext o; exact comp_map f g o
 
 instance : Functor Foreign where map := map
 instance : LawfulFunctor Foreign where
@@ -2172,7 +2172,7 @@ instance : LawfulFunctor Foreign where
   id_map := id_map
   comp_map := comp_map
 
-@[always_inline, simp] def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (o : Foreign α) : m (Foreign β) :=
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (o : Foreign α) : m (Foreign β) :=
   match o with
   | .Value l => .Value <$> l.mapM_value (fun t => t.mapM f)
   | .Data k l => .Data k <$> l.mapM_value (fun t => t.mapM f)
@@ -2224,7 +2224,7 @@ inductive Import (e : Type)
 
 namespace Import
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (i : Import α) : Import β :=
+@[always_inline, simp] def map (f : α → β) (i : Import α) : Import β :=
   match i with
   | .Value n        => .Value n
   | .Op n           => .Op n
@@ -2233,17 +2233,17 @@ namespace Import
   | .Class t n      => .Class t n
   | .Error d        => .Error (f d)
 
-@[simp] theorem id_map {α : Type} (i : Import α) : (i.map id) = i := by
+@[simp] theorem id_map (i : Import α) : (i.map id) = i := by
   cases i <;> rfl
 
-@[simp] theorem comp_map {α β γ : Type} (f : α → β) (g : β → γ) (i : Import α) : (i.map (g ∘ f)) = (i.map f |>.map g) := by
+@[simp] theorem comp_map (f : α → β) (g : β → γ) (i : Import α) : (i.map (g ∘ f)) = (i.map f |>.map g) := by
   cases i <;> rfl
 
-@[simp] theorem functor_map_id {α : Type} : map (id : α → α) = id := by funext i; exact id_map i
+@[simp] theorem functor_map_id : map (id : α → α) = id := by funext i; exact id_map i
 
-@[simp] theorem functor_map_comp {α β γ : Type} (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext i; exact comp_map f g i
+@[simp] theorem functor_map_comp (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext i; exact comp_map f g i
 
-@[always_inline, simp] def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (i : Import α) : m (Import β) := match i with | .Value n => pure (.Value n) | .Op n => pure (.Op n) | .Type_ n m => pure (.Type_ n m) | .TypeOp t n => pure (.TypeOp t n) | .Class t n => pure (.Class t n) | .Error d => .Error <$> f d
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (i : Import α) : m (Import β) := match i with | .Value n => pure (.Value n) | .Op n => pure (.Op n) | .Type_ n m => pure (.Type_ n m) | .TypeOp t n => pure (.TypeOp t n) | .Class t n => pure (.Class t n) | .Error d => .Error <$> f d
 
 end Import
 
@@ -2264,18 +2264,18 @@ structure ImportDecl (e : Type) where
 
 namespace ImportDecl
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (i : ImportDecl α) : ImportDecl β :=
+@[always_inline, simp] def map (f : α → β) (i : ImportDecl α) : ImportDecl β :=
   { i with importList := i.importList.map (fun (o, d) => (o, Functor.map (Functor.map f) d)) }
 
-@[simp] theorem id_map {α : Type} (i : ImportDecl α) : (i.map id) = i := by
+@[simp] theorem id_map (i : ImportDecl α) : (i.map id) = i := by
   cases i; aesop
 
-@[simp] theorem comp_map {α β γ : Type} (f : α → β) (g : β → γ) (i : ImportDecl α) : (i.map (g ∘ f)) = (i.map f |>.map g) := by
+@[simp] theorem comp_map (f : α → β) (g : β → γ) (i : ImportDecl α) : (i.map (g ∘ f)) = (i.map f |>.map g) := by
   cases i; aesop
 
-@[simp] theorem map_id_fun {α : Type} : map (id : α → α) = id := by funext i; exact id_map i
+@[simp] theorem map_id_fun : map (id : α → α) = id := by funext i; exact id_map i
 
-@[simp] theorem map_comp_fun {α β γ : Type} (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext i; exact comp_map f g i
+@[simp] theorem map_comp_fun (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext i; exact comp_map f g i
 
 instance : Functor ImportDecl where map := map
 instance : LawfulFunctor ImportDecl where
@@ -2283,7 +2283,7 @@ instance : LawfulFunctor ImportDecl where
   id_map := id_map
   comp_map := comp_map
 
-def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (i : ImportDecl α) : m (ImportDecl β) := do
+def mapM [Monad m] (f : α → m β) (i : ImportDecl α) : m (ImportDecl β) := do
   let list ← i.importList.mapM (fun (o, d) => (o, ·) <$> d.mapM (Import.mapM f))
   pure { i with importList := list }
 
@@ -2308,21 +2308,21 @@ structure ModuleHeader (e : Type) where
 
 namespace ModuleHeader
 
-@[always_inline, simp] def map {α β : Type} (f : α → β) (m : ModuleHeader α) : ModuleHeader β :=
+@[always_inline, simp] def map (f : α → β) (m : ModuleHeader α) : ModuleHeader β :=
   { m with
     exports := m.exports.map (Functor.map (Functor.map f))
     imports := m.imports.map (Functor.map f)
   }
 
-@[simp] theorem id_map {α : Type} (m : ModuleHeader α) : (m.map id) = m := by
+@[simp] theorem id_map (m : ModuleHeader α) : (m.map id) = m := by
   cases m; aesop
 
-@[simp] theorem comp_map {α β γ : Type} (f : α → β) (g : β → γ) (m : ModuleHeader α) : (m.map (g ∘ f)) = (m.map f |>.map g) := by
+@[simp] theorem comp_map (f : α → β) (g : β → γ) (m : ModuleHeader α) : (m.map (g ∘ f)) = (m.map f |>.map g) := by
   cases m; aesop
 
-@[simp] theorem map_id_fun {α : Type} : map (id : α → α) = id := by funext m; exact id_map m
+@[simp] theorem map_id_fun : map (id : α → α) = id := by funext m; exact id_map m
 
-@[simp] theorem map_comp_fun {α β γ : Type} (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext m; exact comp_map f g m
+@[simp] theorem map_comp_fun (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext m; exact comp_map f g m
 
 instance : Functor ModuleHeader where map := map
 instance : LawfulFunctor ModuleHeader where
@@ -2330,7 +2330,7 @@ instance : LawfulFunctor ModuleHeader where
   id_map := id_map
   comp_map := comp_map
 
-@[always_inline, simp] def mapM {m : Type → Type} [Monad m] {α β : Type} (f : α → m β) (m_ : ModuleHeader α) : m (ModuleHeader β) := do
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (m_ : ModuleHeader α) : m (ModuleHeader β) := do
   let exps ← m_.exports.mapM (·.mapM (Export.mapM f))
   let imps ← m_.imports.mapM (ImportDecl.mapM f)
   pure { m_ with exports := exps, imports := imps }

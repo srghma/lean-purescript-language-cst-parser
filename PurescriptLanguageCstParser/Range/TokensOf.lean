@@ -13,8 +13,6 @@ open PurescriptLanguageCstParser.Range.TokenList
 open NonEmpty.ArrayCorrectByConstruction
 open PurescriptLanguageCstParser.Errors
 
-set_option autoImplicit false
-
 class TokensOf (α : Type) where
   tokensOf (a : α) : TokenList
 
@@ -25,18 +23,18 @@ instance : Inhabited TokenList := ⟨.TokenEmpty⟩
 instance : TokensOf SourceToken where
   tokensOf t := TokenList.singleton t
 
-instance {α β : Type} [TokensOf α] [TokensOf β] : TokensOf (α × β) where
+instance [TokensOf α] [TokensOf β] : TokensOf (α × β) where
   tokensOf ab := TokensOf.tokensOf ab.1 ++ TokensOf.tokensOf ab.2
 
-instance {α : Type} [TokensOf α] : TokensOf (Option α) where
+instance [TokensOf α] : TokensOf (Option α) where
   tokensOf o := match o with
     | some a => TokensOf.tokensOf a
     | none => .TokenEmpty
 
-instance {α : Type} [TokensOf α] : TokensOf (Array α) where
+instance [TokensOf α] : TokensOf (Array α) where
   tokensOf := NonEmpty.ArrayUtil.foldMap (· ++ ·) TokensOf.tokensOf .TokenEmpty
 
-instance {α : Type} [TokensOf α] : TokensOf (NonEmptyArray α) where
+instance [TokensOf α] : TokensOf (NonEmptyArray α) where
   tokensOf arr := arr.foldMap (· ++ ·) TokensOf.tokensOf
 
 instance : TokensOf Empty where
@@ -44,39 +42,39 @@ instance : TokensOf Empty where
 
 -- ── CST Generic Wrappers ────────────────────────────────────────────────────
 
-instance {a : Type} : TokensOf (Name a) where
+instance : TokensOf (Name a) where
   tokensOf n := TokenList.singleton n.token
 
-instance {a : Type} : TokensOf (QualifiedName a) where
+instance : TokensOf (QualifiedName a) where
   tokensOf n := TokenList.singleton n.token
 
-instance {a : Type} [TokensOf a] : TokensOf (Wrapped a) where
+instance [TokensOf a] : TokensOf (Wrapped a) where
   tokensOf w := .TokenWrap w.open_ (TokensOf.tokensOf w.value) w.close
 
-instance {a : Type} [TokensOf a] : TokensOf (Separated a) where
+instance [TokensOf a] : TokensOf (Separated a) where
   tokensOf s := s.foldMap (· ++ ·) TokensOf.tokensOf TokensOf.tokensOf
 
-instance {a b : Type} [TokensOf a] [TokensOf b] : TokensOf (Labeled a b) where
+instance [TokensOf a] [TokensOf b] : TokensOf (Labeled a b) where
   tokensOf l := TokensOf.tokensOf l.label ++ TokenList.singleton l.separator ++ TokensOf.tokensOf l.value
 
-instance {a : Type} [TokensOf a] : TokensOf (Prefixed a) where
+instance [TokensOf a] : TokensOf (Prefixed a) where
   tokensOf p :=
     match p.prefix_ with
     | some tok => .TokenCons tok (TokensOf.tokensOf p.value)
     | none => TokensOf.tokensOf p.value
 
-instance {a : Type} [TokensOf a] : TokensOf (Delimited a) where
+instance [TokensOf a] : TokensOf (Delimited a) where
   tokensOf | .mk w => TokensOf.tokensOf w
 
-instance {a : Type} [TokensOf a] : TokensOf (DelimitedNonEmpty a) where
+instance [TokensOf a] : TokensOf (DelimitedNonEmpty a) where
   tokensOf | .mk w => TokensOf.tokensOf w
 
-instance {a : Type} [TokensOf a] : TokensOf (OneOrDelimited a) where
+instance [TokensOf a] : TokensOf (OneOrDelimited a) where
   tokensOf o := match o with
     | .One a => TokensOf.tokensOf a
     | .Many as => TokensOf.tokensOf as
 
-instance {a : Type} [TokensOf a] : TokensOf (Row a) where
+instance [TokensOf a] : TokensOf (Row a) where
   tokensOf r :=
     (match r.labels with
      | some s => TokensOf.tokensOf s
@@ -110,7 +108,7 @@ instance : TokensOf FixityFields where
 
 -- ── Recursive CST Implementation ────────────────────────────────────────────
 
-variable {e : Type} [TokensOf e]
+variable [TokensOf e]
 
 mutual
   partial def tokensOf_Type_ (t : Type_ e) : TokenList := match t with
@@ -529,35 +527,35 @@ mutual
   partial def tokensOf_Module (m : Module e) : TokenList := tokensOf_ModuleHeader m.header ++ tokensOf_ModuleBody m.body
 end
 
-instance {e : Type} [TokensOf e] : TokensOf (Type_ e) := ⟨tokensOf_Type_⟩
-instance {name e : Type} [TokensOf name] [TokensOf e] : TokensOf (TypeVarBinding name e) where
+instance [TokensOf e] : TokensOf (Type_ e) := ⟨tokensOf_Type_⟩
+instance [TokensOf name] [TokensOf e] : TokensOf (TypeVarBinding name e) where
   tokensOf := fun x => match x with
     | .Kinded w => TokensOf.tokensOf w
     | .Name n => TokensOf.tokensOf n
-instance {e : Type} [TokensOf e] : TokensOf (Export e) := ⟨tokensOf_Export⟩
-instance {e : Type} [TokensOf e] : TokensOf (Import e) := ⟨tokensOf_Import⟩
-instance {e : Type} [TokensOf e] : TokensOf (ImportDecl e) := ⟨tokensOf_ImportDecl⟩
-instance {e : Type} [TokensOf e] : TokensOf (ModuleHeader e) := ⟨tokensOf_ModuleHeader⟩
-instance {e : Type} [TokensOf e] : TokensOf (DataCtor e) := ⟨tokensOf_DataCtor⟩
-instance {e : Type} [TokensOf e] : TokensOf (Declaration e) := ⟨tokensOf_Declaration⟩
-instance {e : Type} [TokensOf e] : TokensOf (Instance e) := ⟨tokensOf_Instance⟩
-instance {e : Type} [TokensOf e] : TokensOf (GuardedRecursive e) := ⟨tokensOf_GuardedRecursive⟩
-instance {e : Type} [TokensOf e] : TokensOf (GuardedExprRecursive e) := ⟨tokensOf_GuardedExprRecursive⟩
-instance {e : Type} [TokensOf e] : TokensOf (PatternGuardRecursive e) := ⟨tokensOf_PatternGuardRecursive⟩
-instance {e : Type} [TokensOf e] : TokensOf (Foreign e) := ⟨tokensOf_Foreign⟩
-instance {e : Type} [TokensOf e] : TokensOf (InstanceBinding e) := ⟨tokensOf_InstanceBinding⟩
-instance {e : Type} [TokensOf e] : TokensOf (Expr e) := ⟨tokensOf_Expr⟩
-instance {e : Type} [TokensOf e] : TokensOf (AppSpineRecursive e) := ⟨tokensOf_AppSpineRecursive⟩
-instance {e : Type} [TokensOf e] : TokensOf (RecordUpdateRecursive e) := ⟨tokensOf_RecordUpdateRecursive⟩
-instance {e : Type} [TokensOf e] : TokensOf (DoStatementRecursive e) := ⟨tokensOf_DoStatementRecursive⟩
-instance {e : Type} [TokensOf e] : TokensOf (LetBindingRecursive e) := ⟨tokensOf_LetBindingRecursive⟩
-instance {e : Type} [TokensOf e] : TokensOf (Binder e) := ⟨tokensOf_Binder⟩
-instance {e : Type} [TokensOf e] : TokensOf (WhereRecursive e) := ⟨tokensOf_WhereRecursive⟩
-instance {e : Type} [TokensOf e] : TokensOf (ModuleBody e) := ⟨tokensOf_ModuleBody⟩
-instance {e : Type} [TokensOf e] : TokensOf (Module e) := ⟨tokensOf_Module⟩
-instance {e : Type} [TokensOf e] : TokensOf (DataHead e) := ⟨tokensOf_DataHead⟩
-instance {e : Type} [TokensOf e] : TokensOf (ClassHead e) := ⟨tokensOf_ClassHead⟩
-instance {e : Type} [TokensOf e] : TokensOf (InstanceHead e) := ⟨tokensOf_InstanceHead⟩
-instance {e : Type} [TokensOf e] : TokensOf (ValueBindingFieldsRecursive e) := ⟨tokensOf_ValueBindingFieldsRecursive⟩
+instance [TokensOf e] : TokensOf (Export e) := ⟨tokensOf_Export⟩
+instance [TokensOf e] : TokensOf (Import e) := ⟨tokensOf_Import⟩
+instance [TokensOf e] : TokensOf (ImportDecl e) := ⟨tokensOf_ImportDecl⟩
+instance [TokensOf e] : TokensOf (ModuleHeader e) := ⟨tokensOf_ModuleHeader⟩
+instance [TokensOf e] : TokensOf (DataCtor e) := ⟨tokensOf_DataCtor⟩
+instance [TokensOf e] : TokensOf (Declaration e) := ⟨tokensOf_Declaration⟩
+instance [TokensOf e] : TokensOf (Instance e) := ⟨tokensOf_Instance⟩
+instance [TokensOf e] : TokensOf (GuardedRecursive e) := ⟨tokensOf_GuardedRecursive⟩
+instance [TokensOf e] : TokensOf (GuardedExprRecursive e) := ⟨tokensOf_GuardedExprRecursive⟩
+instance [TokensOf e] : TokensOf (PatternGuardRecursive e) := ⟨tokensOf_PatternGuardRecursive⟩
+instance [TokensOf e] : TokensOf (Foreign e) := ⟨tokensOf_Foreign⟩
+instance [TokensOf e] : TokensOf (InstanceBinding e) := ⟨tokensOf_InstanceBinding⟩
+instance [TokensOf e] : TokensOf (Expr e) := ⟨tokensOf_Expr⟩
+instance [TokensOf e] : TokensOf (AppSpineRecursive e) := ⟨tokensOf_AppSpineRecursive⟩
+instance [TokensOf e] : TokensOf (RecordUpdateRecursive e) := ⟨tokensOf_RecordUpdateRecursive⟩
+instance [TokensOf e] : TokensOf (DoStatementRecursive e) := ⟨tokensOf_DoStatementRecursive⟩
+instance [TokensOf e] : TokensOf (LetBindingRecursive e) := ⟨tokensOf_LetBindingRecursive⟩
+instance [TokensOf e] : TokensOf (Binder e) := ⟨tokensOf_Binder⟩
+instance [TokensOf e] : TokensOf (WhereRecursive e) := ⟨tokensOf_WhereRecursive⟩
+instance [TokensOf e] : TokensOf (ModuleBody e) := ⟨tokensOf_ModuleBody⟩
+instance [TokensOf e] : TokensOf (Module e) := ⟨tokensOf_Module⟩
+instance [TokensOf e] : TokensOf (DataHead e) := ⟨tokensOf_DataHead⟩
+instance [TokensOf e] : TokensOf (ClassHead e) := ⟨tokensOf_ClassHead⟩
+instance [TokensOf e] : TokensOf (InstanceHead e) := ⟨tokensOf_InstanceHead⟩
+instance [TokensOf e] : TokensOf (ValueBindingFieldsRecursive e) := ⟨tokensOf_ValueBindingFieldsRecursive⟩
 
 end PurescriptLanguageCstParser.Range

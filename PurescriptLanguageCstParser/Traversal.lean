@@ -48,7 +48,7 @@ def defaultVisitor : Visitor e Id :=
 --------------------------------------------------------------------
 
 section TypeTraversal
-variable {e : Type} {m : Type → Type} [Monad m]
+variable [Monad m]
 
 def traverseType (k : Visitor e m) : Type_ e → m (Type_ e)
   | .Var n                 => pure (.Var n)
@@ -77,7 +77,7 @@ end TypeTraversal
 --------------------------------------------------------------------
 
 section BinderTraversal
-variable {e : Type} {m : Type → Type} [Monad m]
+variable [Monad m]
 
 def traverseBinder (k : Visitor e m) : Binder e → m (Binder e)
   | .Wildcard t         => pure (.Wildcard t)
@@ -103,7 +103,7 @@ end BinderTraversal
 --------------------------------------------------------------------
 
 section ExprTraversal
-variable {e : Type} {m : Type → Type} [Monad m]
+variable [Monad m]
 
 mutual
 
@@ -262,7 +262,7 @@ end ExprTraversal
 --------------------------------------------------------------------
 
 section DeclTraversal
-variable {e : Type} {m : Type → Type} [Monad m]
+variable [Monad m]
 
 def traverseInstanceHead (k : Visitor e m) (ih : InstanceHead e) : m (InstanceHead e) :=
   (fun constraints types => { ih with constraints, types })
@@ -340,7 +340,7 @@ end DeclTraversal
 --------------------------------------------------------------------
 
 section Combinators
-variable {e : Type} {m : Type → Type} [Monad m]
+variable [Monad m]
 
 partial def bottomUpTraversal (v : Visitor e m) : Visitor e m :=
   { onBinder := fun a => v.onBinder =<< traverseBinder v' a
@@ -390,10 +390,10 @@ def rewriteModuleTopDown  (v : Visitor e Id) : Module e → Module e :=
 
 -- Monoidal fold
 -- Emulates Haskell's `Const r` fold by accumulating state through `StateM r Unit`.
-def foldMapExpr {r : Type} [Add r] [OfNat r 0] (v : Visitor e (StateM r)) : Expr e → r :=
+def foldMapExpr [Add r] [OfNat r 0] (v : Visitor e (StateM r)) : Expr e → r :=
   fun ex => ((rewriteExprTopDownM v ex).run 0).snd
 
-def foldMapModule {r : Type} [Add r] [OfNat r 0] (v : Visitor e (StateM r)) : Module e → r :=
+def foldMapModule [Add r] [OfNat r 0] (v : Visitor e (StateM r)) : Module e → r :=
   fun mod => ((rewriteModuleTopDownM v mod).run 0).snd
 
 end Combinators
