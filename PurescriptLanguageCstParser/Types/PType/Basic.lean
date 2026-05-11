@@ -54,7 +54,7 @@ namespace Comment
   | .Space i      => .Space i
   | .Line l i     => .Line (f l) i
 
-@[inline_if_reduce, simp] def mapM [Applicative m] (f : α → m β) (c : PurescriptLanguageCstParser.Types.Comment α) : m (PurescriptLanguageCstParser.Types.Comment β) :=
+@[inline_if_reduce, simp] def mapM [Monad m] (f : α → m β) (c : PurescriptLanguageCstParser.Types.Comment α) : m (PurescriptLanguageCstParser.Types.Comment β) :=
   match c with
   | .Comment s    => pure (.Comment s)
   | .Space i      => pure (.Space i)
@@ -198,7 +198,7 @@ namespace Name
   change sizeOf name < 1 + sizeOf t + sizeOf name
   omega
 
-@[inline_if_reduce, simp] def mapM [Applicative m] (f : α → m β) (n : Name α) : m (Name β) := Name.mk n.token <$> f n.name
+@[inline_if_reduce, simp] def mapM [Monad m] (f : α → m β) (n : Name α) : m (Name β) := Name.mk n.token <$> f n.name
 
 end Name
 
@@ -234,7 +234,7 @@ namespace QualifiedName
   change sizeOf name < 1 + sizeOf t + sizeOf m + sizeOf name
   omega
 
-@[inline_if_reduce, simp] def mapM [Applicative m] (f : α → m β) (n : QualifiedName α) : m (QualifiedName β) := QualifiedName.mk n.token n.module_ <$> f n.name
+@[inline_if_reduce, simp] def mapM [Monad m] (f : α → m β) (n : QualifiedName α) : m (QualifiedName β) := QualifiedName.mk n.token n.module_ <$> f n.name
 
 end QualifiedName
 
@@ -291,7 +291,7 @@ def attach (w : Wrapped α) : Wrapped { x // x ∈ w } :=
 
 @[simp] theorem attach_map_val (w : Wrapped α) : w.attach.map (fun x => x.val) = w := rfl
 
-@[always_inline, simp] def mapM [Applicative m] (f : α → m β) (w : Wrapped α) : m (Wrapped β) := Wrapped.mk w.open_ <$> f w.value <*> pure w.close
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (w : Wrapped α) : m (Wrapped β) := Wrapped.mk w.open_ <$> f w.value <*> pure w.close
 
 @[simp] theorem sizeOf_wrapped_mapM [SizeOf β] (w : Wrapped α) (f : α → β) :
   sizeOf (f w.value) < 1 + sizeOf w.open_ + sizeOf (f w.value) + sizeOf w.close := by
@@ -519,7 +519,7 @@ namespace Prefixed
 
 @[always_inline, simp] def map (f : α → β) (p : Prefixed α) : Prefixed β := { p with value := f p.value }
 
-@[inline_if_reduce, simp] def mapM [Applicative m] (f : α → m β) (p : Prefixed α) : m (Prefixed β) :=
+@[inline_if_reduce, simp] def mapM [Monad m] (f : α → m β) (p : Prefixed α) : m (Prefixed β) :=
   Prefixed.mk p.prefix_ <$> f p.value
 
 @[simp] theorem id_map (p : Prefixed α) : (p.map id) = p := rfl
@@ -771,7 +771,7 @@ namespace TokenAnd
 @[always_inline, simp] def map (f : α → β) (t : TokenAnd α) : TokenAnd β :=
   { t with value := f t.value }
 
-@[inline_if_reduce, simp] def mapM [Applicative m] (f : α → m β) (t : TokenAnd α) : m (TokenAnd β) :=
+@[inline_if_reduce, simp] def mapM [Monad m] (f : α → m β) (t : TokenAnd α) : m (TokenAnd β) :=
   TokenAnd.mk t.token <$> f t.value
 
 @[simp] theorem id_map (t : TokenAnd α) : (t.map id) = t := rfl
@@ -808,7 +808,7 @@ namespace TypeVarBinding
   | .Kinded w => .Kinded (w.map (Labeled.map_value f))
   | .Name n   => .Name n
 
-@[inline_if_reduce] def mapM [Applicative m] (f : α → m β) : TypeVarBinding name α → m (TypeVarBinding name β)
+@[inline_if_reduce] def mapM [Monad m] (f : α → m β) : TypeVarBinding name α → m (TypeVarBinding name β)
   | .Kinded w => .Kinded <$> w.mapM (Labeled.mapM_value f)
   | .Name n   => pure (.Name n)
 
@@ -925,7 +925,7 @@ namespace TypeF_Forall_Bindings
   @[simp] def map (g : α → β) (arr : TypeF_Forall_Bindings α) : TypeF_Forall_Bindings β
     := NonEmptyArray.map (Functor.map g) arr
 
-  @[inline_if_reduce] def mapM [Applicative m] (f : α → m β) (arr : TypeF_Forall_Bindings α) : m (TypeF_Forall_Bindings β) :=
+  @[inline_if_reduce] def mapM [Monad m] (f : α → m β) (arr : TypeF_Forall_Bindings α) : m (TypeF_Forall_Bindings β) :=
     NonEmptyArray.mapM (TypeVarBinding.mapM f) arr
 
   @[simp] theorem id_map (t : TypeF_Forall_Bindings α) : (map id t) = t := by
@@ -959,7 +959,7 @@ namespace TypeF_Op_Ops
 @[simp] def map (g : α → β) (arr : TypeF_Op_Ops α) : TypeF_Op_Ops β
   := NonEmptyArray.map (fun (op, t) => (op, g t)) arr
 
-@[inline_if_reduce] def mapM [Applicative m] (f : α → m β) (arr : TypeF_Op_Ops α) : m (TypeF_Op_Ops β) :=
+@[inline_if_reduce] def mapM [Monad m] (f : α → m β) (arr : TypeF_Op_Ops α) : m (TypeF_Op_Ops β) :=
   NonEmptyArray.mapM (fun (op, t) => (op, ·) <$> f t) arr
 
 @[simp] theorem id_map (t : TypeF_Op_Ops α) : (map id t) = t := by

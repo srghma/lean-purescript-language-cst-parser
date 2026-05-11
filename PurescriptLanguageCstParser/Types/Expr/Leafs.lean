@@ -59,7 +59,7 @@ namespace Export
 
 @[simp] theorem map_comp_fun (f : α → β) (g : β → γ) : map (g ∘ f) = map g ∘ map f := by funext e; exact comp_map f g e
 
-@[always_inline, simp] def mapM [Applicative m] (f : α → m β) (e : Export α) : m (Export β) :=
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (e : Export α) : m (Export β) :=
   match e with
   | .Error d => .Error <$> f d
   | .Value n        => pure (.Value n)
@@ -318,7 +318,7 @@ def attach (r : RecordLabeled α) : RecordLabeled { x // x ∈ r } :=
     r.attach.map (fun x => x.val) = r := by
   cases r <;> rfl
 
-@[always_inline, simp] def mapM [Applicative m] (f : α → m β) (r : RecordLabeled α) : m (RecordLabeled β) := match r with | .Pun n => pure (.Pun n) | .Field l sep v => .Field l sep <$> f v
+@[always_inline, simp] def mapM [Monad m] (f : α → m β) (r : RecordLabeled α) : m (RecordLabeled β) := match r with | .Pun n => pure (.Pun n) | .Field l sep v => .Field l sep <$> f v
 
 end RecordLabeled
 
