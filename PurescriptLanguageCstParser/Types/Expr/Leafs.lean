@@ -3,7 +3,7 @@ module
 import NonEmpty.ArrayCorrectByConstruction
 import NonEmpty.String
 import Aesop
-public import PurescriptLanguageCstParser.Types.PType
+public import PurescriptLanguageCstParser.Types.PType.Basic
 meta import PurescriptLanguageCstParser.GenerateFixed
 
 @[expose] public section

@@ -3,7 +3,7 @@ module
 import NonEmpty.ArrayCorrectByConstruction
 import NonEmpty.String
 import Aesop
-public import PurescriptLanguageCstParser.Types.PType
+public import PurescriptLanguageCstParser.Types.PType.Basic
 public import PurescriptLanguageCstParser.Types.Expr.Leafs
 public import PurescriptLanguageCstParser.Types.Expr.Rec.Basic
 public import PurescriptLanguageCstParser.Types.Expr.Rec.LawfulFunctorMapId

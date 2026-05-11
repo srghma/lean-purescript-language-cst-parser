@@ -1,6 +1,6 @@
 module
 
-public import PurescriptLanguageCstParser.Types.PType
+public import PurescriptLanguageCstParser.Types.PType.Basic
 public import PurescriptLanguageCstParser.Types.Module
 public import PurescriptLanguageCstParser.Errors
 public import PurescriptLanguageCstParser.Range.TokenList

@@ -1,6 +1,6 @@
 module
 
-public import PurescriptLanguageCstParser.Types.PType
+public import PurescriptLanguageCstParser.Types.PType.Basic
 import Init.Data.Array.Subarray
 
 @[expose] public section
@@ -38,7 +38,7 @@ def TokenList.foldl (f : β → SourceToken → β) (init : β) : TokenList → 
   | .TokenWrap a i c => f (foldl f (f init a) i) c
   | .TokenAppend a b => foldl f (foldl f init a) b
   | .TokenArray arr _ => arr.foldl f init
- 
+
  def TokenList.foldMap (op : ω → ω → ω) (f : SourceToken → ω) (empty : ω) (tl : TokenList) : ω :=
    tl.foldl (fun acc t => op acc (f t)) empty
 

@@ -1,6 +1,6 @@
 module
 
-public import PurescriptLanguageCstParser.Types.PType
+public import PurescriptLanguageCstParser.Types.PType.Basic
 public import NonEmpty.ArrayUtil
 
 @[expose] public section
