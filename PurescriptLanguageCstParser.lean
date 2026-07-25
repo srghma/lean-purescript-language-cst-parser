@@ -1,5 +1,6 @@
 module
 prelude
+import PurescriptLanguageCstParser.HashableFloat
 import PurescriptLanguageCstParser.Types
 import PurescriptLanguageCstParser.Traversal
 import PurescriptLanguageCstParser.Print

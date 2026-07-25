@@ -89,7 +89,7 @@ mutual
       simp only at *; omega
     -- Infix head
     · have := NonEmptyArray.sizeOf_lt_of_mem _hmem
-      simp only at *; omega
+      omega
 
   -- ── Delimited (Expr e) ─────────────────────────────────────────────
   @[simp] def Expr.mapMDelimited [Monad m] (f : e1 → m e2) : Delimited (Expr e1) → m (Delimited (Expr e2))
