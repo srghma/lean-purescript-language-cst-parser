@@ -35,11 +35,11 @@ def printTokenError : Token → String
   | .SymbolName moduleName name => "symbol " ++ printQualified moduleName name.toString
   | .SymbolArrow style => match style with | .ASCII => "(->)" | .Unicode => "(→)"
   | .Hole name => "hole ?" ++ name.toString
-  | .Char raw _ => "char literal '" ++ raw ++ "'"
+  | .Char raw _ => "char literal '" ++ raw.toString ++ "'"
   | .String _raw _ => "string literal"
   | .RawString _ => "raw string literal"
-  | .Int raw _ => "int literal " ++ raw
-  | .Number raw _ => "number literal " ++ raw
+  | .Int raw _ => "int literal " ++ raw.toString
+  | .Number raw _ => "number literal " ++ raw.toString
   | .LayoutStart _ => "start of indented block"
   | .LayoutSep _ => "new indented block item"
   | .LayoutEnd _ => "end of indented block"

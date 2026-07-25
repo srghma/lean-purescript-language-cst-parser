@@ -78,10 +78,10 @@ mutual
       simp only [Prod.mk.sizeOf_spec] at *; omega
     -- Record
     · have := DelimitedNonEmpty.sizeOf_attach_elem upd ⟨u, _hmem⟩
-      simp only at *; omega
+      omega
     -- Infix head
     · have := NonEmptyArray.sizeOf_lt_of_mem _hmem
-      simp only at *; omega
+      omega
 
   -- ── Delimited (Expr e) ─────────────────────────────────────────────
   @[simp] def Expr.mapDelimited (f : e1 → e2) : Delimited (Expr e1) → Delimited (Expr e2)
