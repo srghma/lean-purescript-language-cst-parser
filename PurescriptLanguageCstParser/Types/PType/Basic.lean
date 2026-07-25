@@ -128,18 +128,18 @@ inductive Token
   | String (s : String) (value : String)
   | RawString (s : String)
   | Int (s : NonEmptyString) (value : IntValue)
-  | Number (s : NonEmptyString) (value : Float)
+  | Number (s : NonEmptyString) (value : Lean.JsonNumber) -- Float) -- TODO: use JsonNumber
   | LayoutStart (i : USize)
   | LayoutSep (i : USize)
   | LayoutEnd (i : USize)
-  deriving Repr, BEq --, Ord -- bc of Float
+  deriving Repr, BEq, Hashable --, Ord -- bc of Float
 
 structure SourceToken where
   range : SourceRange
   leadingComments : Array (Comment LineFeed)
   trailingComments : Array CommentWithoutLine
   value : Token
-  deriving Repr, BEq
+  deriving Repr, BEq, Hashable
 
 namespace SourceToken
 
@@ -181,7 +181,7 @@ instance : Inhabited Operator := ⟨nes!"<DEFAULT Operator>"⟩
 structure Name (α : Type) where
   token : SourceToken
   name : α
-  deriving Repr, BEq
+  deriving Repr, BEq, Hashable
 
 instance [SizeOf α] : SizeOf (Name α) where
   sizeOf n := 1 + sizeOf n.token + sizeOf n.name
@@ -220,7 +220,7 @@ structure QualifiedName (α : Type) where
   token : SourceToken
   module_ : Option ModuleName
   name : α
-  deriving Repr, BEq
+  deriving Repr, BEq, Hashable
 
 namespace QualifiedName
 
@@ -256,7 +256,7 @@ structure Wrapped (α : Type) where
   open_ : SourceToken
   value : α
   close : SourceToken
-  deriving Repr, BEq
+  deriving Repr, BEq, Hashable
 
 namespace Wrapped
 
