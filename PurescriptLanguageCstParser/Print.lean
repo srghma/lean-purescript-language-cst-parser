@@ -76,11 +76,11 @@ def printTokenWithOption (option : TokenOption) : Token → String
   | .SymbolName moduleName name => printQualified moduleName ("(" ++ name.toString ++ ")")
   | .SymbolArrow style => match style with | .ASCII => "(->)" | .Unicode => "(→)"
   | .Hole name => "?" ++ name.toString
-  | .Char raw _ => "'" ++ raw ++ "'"
+  | .Char raw _ => ("'" ++ raw ++ "'").toString
   | .String raw _ => "\"" ++ raw ++ "\""
   | .RawString raw => "\"\"\"" ++ raw ++ "\"\"\""
-  | .Int raw _ => raw
-  | .Number raw _ => raw
+  | .Int raw _ => raw.toString
+  | .Number raw _ => raw.toString
   | .LayoutStart _ => match option with | .ShowLayout => "{" | .HideLayout => ""
   | .LayoutSep _ => match option with | .ShowLayout => ";" | .HideLayout => ""
   | .LayoutEnd _ => match option with | .ShowLayout => "}" | .HideLayout => ""

@@ -3,6 +3,7 @@ module
 public import NonEmpty.ArrayCorrectByConstruction
 public import NonEmpty.String
 import PurescriptLanguageCstParser.GenerateFixed
+public import PurescriptLanguageCstParser.HashableFloat
 
 namespace PurescriptLanguageCstParser.Types
 
@@ -128,7 +129,7 @@ inductive Token
   | String (s : String) (value : String)
   | RawString (s : String)
   | Int (s : NonEmptyString) (value : IntValue)
-  | Number (s : NonEmptyString) (value : Lean.JsonNumber) -- Float) -- TODO: use JsonNumber
+  | Number (s : NonEmptyString) (value : HashableFloat)
   | LayoutStart (i : USize)
   | LayoutSep (i : USize)
   | LayoutEnd (i : USize)
@@ -1957,7 +1958,7 @@ instance : Functor Type_ where map := Type_.map
 instance : LawfulFunctor Type_ where
   map_const := rfl
   id_map t := by
-    simpa only using Type_.map_id t
+    exact Type_.map_id t
   comp_map g h t := by
     simpa only [Functor.map] using Type_.map_comp g h t
 
