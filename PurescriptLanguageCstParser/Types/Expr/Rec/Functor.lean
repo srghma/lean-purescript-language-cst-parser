@@ -78,7 +78,7 @@ mutual
       simp only [Prod.mk.sizeOf_spec] at *; omega
     -- Record
     · have := DelimitedNonEmpty.sizeOf_attach_elem upd ⟨u, _hmem⟩
-      omega
+      simp only at *; omega
     -- Infix head
     · have := NonEmptyArray.sizeOf_lt_of_mem _hmem
       omega
