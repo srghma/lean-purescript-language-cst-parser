@@ -36,12 +36,21 @@ rev = "main"
 [[require]]
 name = "aesop"
 scope = "leanprover-community"
+rev = "v4.33.0-rc1"
 # git = "https://github.com/leanprover-community/aesop"
 # path = "/home/srghma/projects/aesop"
 
 [[require]]
 name = "batteries"
 scope = "leanprover-community"
+rev = "v4.33.0-rc1"
+# rev = "main"
+# path = "/home/srghma/projects/batteries"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.33.0-rc1"
 # rev = "main"
 # path = "/home/srghma/projects/batteries"
 
