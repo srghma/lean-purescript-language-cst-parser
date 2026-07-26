@@ -673,12 +673,8 @@ mutual
           Wrapped.sizeOf_value (Wrapped.mk open_ (some ({ head := head, tail := tail } : Separated (RecordLabeled (Binder _)))) close)
         simp only [Option.some.sizeOf_spec] at h3
         omega
-      have h3 :
-          sizeOf (Wrapped.mk open_ (some ({ head := head, tail := tail } : Separated (RecordLabeled (Binder _)))) close) <
-            sizeOf (Record (Delimited.mk { open_ := open_, value := some { head := head, tail := tail }, close := close })) := by
-        simp only [Record.sizeOf_spec, Delimited.mk.sizeOf_spec]
-        omega
-      simpa only [Record.sizeOf_spec, Delimited.mk.sizeOf_spec] using Nat.lt_trans h1 (Nat.lt_trans h2 h3)
+      simp only [Separated.mk.sizeOf_spec, Wrapped.mk.sizeOf_spec, Option.some.sizeOf_spec] at h1 h2
+      omega
     · cases hpair : tail[i]'hi₂ with
       | mk fst snd =>
           have hget := Array.sizeOf_getElem tail i hi₂
@@ -686,7 +682,7 @@ mutual
           clear hi₁
           omega
     · clear hi₁ htailMap
-      have htail : sizeOf tail < sizeOf ({ head := (op, child), tail := tail } : NonEmptyArray (QualifiedName Operator × Binder e)) := by
+      have _htail : sizeOf tail < sizeOf ({ head := (op, child), tail := tail } : NonEmptyArray (QualifiedName Operator × Binder e)) := by
         change sizeOf tail < 1 + sizeOf (op, child) + sizeOf tail
         omega
       have hops : sizeOf ({ head := (op, child), tail := tail } : NonEmptyArray (QualifiedName Operator × Binder e)) <
@@ -699,7 +695,8 @@ mutual
         | (fst, snd) =>
             simp only [hpair, Prod.mk.sizeOf_spec] at hget ⊢
             omega
-      simpa only [Op.sizeOf_spec] using Nat.lt_trans hpair (Nat.lt_trans htail hops)
+      simp only [Op.sizeOf_spec, NonEmpty.ArrayCorrectByConstruction.NonEmptyArray.mk.sizeOf_spec, Prod.mk.sizeOf_spec] at hops
+      omega
 
   @[simp] theorem mapRecordLabeled_id (rl : RecordLabeled (Binder e)) : mapRecordLabeled id rl = rl := by
     match rl with
