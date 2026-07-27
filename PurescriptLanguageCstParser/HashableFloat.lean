@@ -1,6 +1,12 @@
 module
 
-public import Batteries.Data.Float.Lemmas
+public import Init.Data.Float.Model.Float
+public import Batteries
+public import Std.Tactic.BVDecide
+public import Std.Tactic.BVDecide.Reflect
+
+open Float.Model
+open UnpackedFloat
 
 @[expose] public section
 
@@ -13,77 +19,58 @@ structure HashableFloat where
 instance : Repr HashableFloat where
   reprPrec f := reprPrec f.toFloat
 
+theorem float_toBits_inj (a b : Float) : a.toBits = b.toBits → a = b := by
+  intro h
+  cases a; rename_i ma
+  cases b; rename_i mb
+  dsimp [Float.toBits] at h
+  cases ma; rename_i ba vala
+  cases mb; rename_i bb valb
+  dsimp at h
+  subst h
+  have h_val : vala = valb := by rfl
+  subst h_val
+  rfl
+
 instance : BEq HashableFloat where
-  beq a b := a.toFloat == b.toFloat
-
-instance : Hashable HashableFloat where
-  hash f := hash f.toFloat.toBits
-
-instance : LawfulHashable HashableFloat where
-  hash_eq a b h := by
-    dsimp [BEq.beq, hash] at h ⊢
-    have h_eq : a.toFloat == b.toFloat := h
-    rw [Float.beq_iff_ne_nan_and_eq] at h_eq
-    have h_or := h_eq.2.2
-    rcases h_or with h_val | ⟨_, h_neg⟩ | ⟨h_neg, _⟩
-    · rw [h_val]
-    · have h_contra := b.notNegZero
-      contradiction
-    · have h_contra := a.notNegZero
-      contradiction
+  beq a b := a.toFloat.toBits == b.toFloat.toBits
 
 instance : ReflBEq HashableFloat where
   rfl {a} := by
-    have h : (a.toFloat == a.toFloat) = true := by
-      rw [Float.beq_iff_ne_nan_and_eq]
-      exact ⟨a.notNaN, a.notNaN, Or.inl rfl⟩
-    exact h
+    dsimp [BEq.beq]
+    simp
 
 instance : LawfulBEq HashableFloat where
   eq_of_beq {a b} h := by
-    have h' : (a.toFloat == b.toFloat) = true := h
-    rw [Float.beq_iff_ne_nan_and_eq] at h'
-    have h_or := h'.2.2
-    rcases h_or with h_val | ⟨_, h_neg⟩ | ⟨h_neg, _⟩
-    · cases a; cases b
-      dsimp at h_val
-      subst h_val
-      rfl
-    · have h_contra := b.notNegZero
-      contradiction
-    · have h_contra := a.notNegZero
-      contradiction
+    dsimp [BEq.beq] at h
+    rw [decide_eq_true_iff] at h
+    have h_float : a.toFloat = b.toFloat := float_toBits_inj a.toFloat b.toFloat h
+    cases a; cases b
+    dsimp at h_float
+    subst h_float
+    rfl
 
 instance : Coe HashableFloat Float where
   coe f := f.toFloat
 
--- Custom Ord instance for HashableFloat
-instance : Ord HashableFloat where
-  compare a b :=
-    if a.toFloat < b.toFloat then Ordering.lt
-    else if a.toFloat == b.toFloat then Ordering.eq
-    else Ordering.gt
-
-instance : LT HashableFloat where
-  lt a b := a.toFloat < b.toFloat
-
-instance : LE HashableFloat where
-  le a b := a.toFloat ≤ b.toFloat
-
 instance : Inhabited HashableFloat where
   default := {
-    toFloat := default -- it is 0
+    toFloat := Float.ofModel default
     notNaN := fun h => by
-      have hBits : (0.0 : Float).toBits = Float.nan.toBits := by rw [h]
-      revert hBits; decide
+      have h_eq : (Float.ofModel default).toBits = Float.nan.toBits := by rw [h]
+      have h_eq' : 0 = Float.nan.toBits := h_eq
+      have h_ne : 0 ≠ Float.nan.toBits := by decide
+      exact h_ne h_eq'
     notNegZero := fun h => by
-      have hBits : (0.0 : Float).toBits = (-0.0 : Float).toBits := by rw [h]
-      revert hBits; decide
+      have h_eq : (Float.ofModel default).toBits = (-0 : Float).toBits := by rw [h]
+      have h_eq' : 0 = (Float.neg (Float.ofModel default)).toBits := h_eq
+      have h_ne : 0 ≠ (Float.neg (Float.ofModel default)).toBits := by decide
+      exact h_ne h_eq'
   }
 
 namespace HashableFloat
 
-def ofFloat? (f : Float) : Option HashableFloat :=
+noncomputable def ofFloat? (f : Float) : Option HashableFloat :=
   if h_nan : f = Float.nan then
     none
   else if h_neg : f = (-0 : Float) then
@@ -91,48 +78,111 @@ def ofFloat? (f : Float) : Option HashableFloat :=
   else
     some (HashableFloat.ofFloat f h_nan h_neg)
 
-def ofFloat! (f : Float) : HashableFloat :=
+noncomputable def ofFloat! (f : Float) : HashableFloat :=
   match ofFloat? f with
   | some hf => hf
   | none => panic! s!"Invalid HashableFloat: {f} is either NaN or -0.0"
 
-def normalize (f : Float) : HashableFloat :=
+noncomputable def normalize (f : Float) : HashableFloat :=
   if h_nan : f = Float.nan then
-    default -- returns the 0.0 from the Inhabited instance
+    default
   else if h_neg : f = (-0 : Float) then
     default
   else
     ⟨f, h_nan, h_neg⟩
 
--- ==========================================
--- PROOFS OF CORRECTNESS FOR `Ord` -- TODO: is there some class in mathlib to prove ord correctness instead of these custom theorems?
--- ==========================================
+instance : Ord HashableFloat where
+  compare a b := compare a.toFloat.toBits b.toFloat.toBits
 
--- TODO: what other classes can prove other correctnesses?
+instance : LT HashableFloat where
+  lt a b := a.toFloat.toBits < b.toFloat.toBits
 
-/-- Proves that `compare a b = Ordering.eq` if and only if `a = b`. -/
+instance : LE HashableFloat where
+  le a b := a.toFloat.toBits ≤ b.toFloat.toBits
+
 theorem compare_eq_iff_eq (a b : HashableFloat) : compare a b = Ordering.eq ↔ a = b := by
-  dsimp [compare]
-  split_ifs with h_lt h_eq
-  · simp
-  · have h : (a.toFloat == b.toFloat) = true := h_eq
-    rw [Float.beq_iff_ne_nan_and_eq] at h
-    rcases h.2.2 with h_val | ⟨_, h_neg⟩ | ⟨h_neg, _⟩
-    · cases a; cases b; dsimp at h_val; subst h_val; simp
-    · have h_contra := b.notNegZero; contradiction
-    · have h_contra := a.notNegZero; contradiction
-  · simp
+  dsimp [compare, Ord.compare, compareOfLessAndEq]
+  constructor
+  · intro h
+    split at h
+    · contradiction
+    · split at h
+      · rename_i h_eq
+        have h_float : a.toFloat = b.toFloat := float_toBits_inj a.toFloat b.toFloat h_eq
+        cases a; cases b
+        dsimp at h_float
+        subst h_float
+        rfl
+      · contradiction
+  · intro h
+    subst h
+    dsimp [compare, Ord.compare, compareOfLessAndEq]
+    split
+    · have h_contra : ¬ (a.toFloat.toBits < a.toFloat.toBits) := by bv_decide
+      contradiction
+    · split
+      · rfl
+      · rename_i h_eq
+        have h_refl : a.toFloat.toBits = a.toFloat.toBits := rfl
+        contradiction
 
-/-- Proves that `compare a b = Ordering.lt` if and only if `a < b`. -/
 theorem compare_lt_iff_lt (a b : HashableFloat) : compare a b = Ordering.lt ↔ a < b := by
-  dsimp [compare, LT.lt]
-  split_ifs with h_lt
-  · simp [h_lt]
-  · simp [h_lt]
+  dsimp [compare, Ord.compare, compareOfLessAndEq, LT.lt]
+  constructor
+  · intro h
+    split at h <;> rename_i h_lt
+    · exact h_lt
+    · split at h <;> contradiction
+  · intro h
+    split
+    · rfl
+    · contradiction
 
--- TODO: Prove that `compare a b = Ordering.gt` if and only if `a > b`.
+theorem compare_gt_iff_gt (a b : HashableFloat) : compare a b = Ordering.gt ↔ b < a := by
+  dsimp [compare, Ord.compare, compareOfLessAndEq, LT.lt]
+  constructor
+  · intro h
+    split at h <;> rename_i h_lt
+    · contradiction
+    · split at h <;> rename_i h_eq
+      · contradiction
+      · have h_lt_ba : (b.toFloat.toBits < a.toFloat.toBits) = true := by bv_decide
+        exact h_lt_ba
+  · intro h
+    split <;> rename_i h_lt_ab
+    · have h_asymm : ¬ (a.toFloat.toBits < b.toFloat.toBits ∧ b.toFloat.toBits < a.toFloat.toBits) := by bv_decide
+      have h_and : a.toFloat.toBits < b.toFloat.toBits ∧ b.toFloat.toBits < a.toFloat.toBits := ⟨h_lt_ab, h⟩
+      contradiction
+    · split <;> rename_i h_eq
+      · have h_refl : ¬ (b.toFloat.toBits < b.toFloat.toBits) := by bv_decide
+        rw [← h_eq] at h
+        contradiction
+      · rfl
 
+noncomputable def Sum (a b : HashableFloat) : HashableFloat :=
+  normalize (a.toFloat + b.toFloat)
 
--- TODO: add also Sum, Mut, prove their correctness too
+noncomputable def Mut (a b : HashableFloat) : HashableFloat :=
+  normalize (a.toFloat * b.toFloat)
+
+theorem Sum_toFloat (a b : HashableFloat) (h : (a.toFloat + b.toFloat) ≠ Float.nan) (h2 : (a.toFloat + b.toFloat) ≠ (-0 : Float)) :
+  (Sum a b).toFloat = a.toFloat + b.toFloat := by
+  by_cases h_nan : a.toFloat + b.toFloat = Float.nan
+  · contradiction
+  · by_cases h_neg : a.toFloat + b.toFloat = (-0 : Float)
+    · contradiction
+    · dsimp [normalize]
+      rw [if_neg h_nan, if_neg h_neg]
+      rfl
+
+theorem Mut_toFloat (a b : HashableFloat) (h : (a.toFloat * b.toFloat) ≠ Float.nan) (h2 : (a.toFloat * b.toFloat) ≠ (-0 : Float)) :
+  (Mut a b).toFloat = a.toFloat * b.toFloat := by
+  by_cases h_nan : a.toFloat * b.toFloat = Float.nan
+  · contradiction
+  · by_cases h_neg : a.toFloat * b.toFloat = (-0 : Float)
+    · contradiction
+    · dsimp [normalize]
+      rw [if_neg h_nan, if_neg h_neg]
+      rfl
 
 end HashableFloat
