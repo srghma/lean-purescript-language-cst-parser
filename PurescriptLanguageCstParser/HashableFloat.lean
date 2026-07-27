@@ -1,7 +1,8 @@
 module
 
 public import Init.Data.Float.Model.Float
-public import Batteries
+public import Batteries.Lean.Float
+import Batteries
 
 open Float.Model
 open UnpackedFloat
