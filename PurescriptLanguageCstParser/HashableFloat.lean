@@ -307,7 +307,10 @@ theorem float_neg_zero_unpack : (-0 : Float).toModel.unpack = zero .negative := 
   sorry
 
 instance : Ord HashableFloat where
-  compare a b := (a.toFloat.toModel.compare b.toFloat.toModel).getD Ordering.eq
+  compare a b :=
+    match a.toFloat.toModel.compare b.toFloat.toModel with
+    | some ord => ord
+    | none => Ordering.eq
 
 instance : LT HashableFloat where
   lt a b := a.toFloat < b.toFloat
